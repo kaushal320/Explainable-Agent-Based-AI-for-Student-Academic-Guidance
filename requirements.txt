@@ -1,0 +1,29 @@
+# Core API
+fastapi
+uvicorn
+pydantic-settings
+python-dotenv
+groq
+
+# Data & ML
+pandas
+numpy
+joblib
+scikit-learn
+
+# Testing
+pytest
+httpx
+
+# Database & RAG Components
+motor
+pymongo
+python-jose[cryptography]
+passlib[bcrypt]
+langchain
+langchain-groq
+langchain-community
+langchain-mongodb
+langchain-huggingface
+sentence-transformers
+python-multipart
