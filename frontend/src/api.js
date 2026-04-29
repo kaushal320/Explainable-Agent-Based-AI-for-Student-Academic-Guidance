@@ -1,13 +1,13 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = 'http://localhost:8000/api';
-const TOKEN_KEY = 'career_tutor_token';
-const AUTH_USER_KEY = 'career_tutor_auth_user';
+const API_BASE_URL = "http://localhost:8000/api";
+const TOKEN_KEY = "career_tutor_token";
+const AUTH_USER_KEY = "career_tutor_auth_user";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -42,45 +42,49 @@ api.interceptors.request.use((config) => {
 });
 
 export const registerUser = async ({ email, password, full_name }) => {
-  const response = await api.post('/auth/register', { email, password, full_name });
+  const response = await api.post("/auth/register", {
+    email,
+    password,
+    full_name,
+  });
   setAuthSession(response.data.access_token, response.data.user);
   return response.data;
 };
 
 export const loginUser = async ({ email, password }) => {
-  const response = await api.post('/auth/login', { email, password });
+  const response = await api.post("/auth/login", { email, password });
   setAuthSession(response.data.access_token, response.data.user);
   return response.data;
 };
 
 export const getMe = async () => {
-  const response = await api.get('/auth/me');
+  const response = await api.get("/auth/me");
   return response.data;
 };
 
 export const predictCareer = async (studentData) => {
-  const response = await api.post('/predict/', studentData);
+  const response = await api.post("/predict/", studentData);
   return response.data;
 };
 
 export const sendMessage = async (prompt, history, context) => {
-  const response = await api.post('/chat/', { prompt, history, context });
+  const response = await api.post("/chat/", { prompt, history, context });
   return response.data;
 };
 
 export const streamMessage = async (prompt, history, context, onChunk) => {
   const token = getAuthToken();
   const response = await fetch(`${API_BASE_URL}/chat/stream`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ prompt, history, context }),
   });
 
   if (!response.ok) {
-    throw new Error('Streaming request failed');
+    throw new Error("Streaming request failed");
   }
 
   const reader = response.body.getReader();
@@ -98,12 +102,16 @@ export const streamMessage = async (prompt, history, context, onChunk) => {
 };
 
 export const getLesson = async (topic, week) => {
-  const response = await api.get(`/learning/lesson?career=${encodeURIComponent(topic)}&week=${week}`);
+  const response = await api.get(
+    `/learning/lesson?career=${encodeURIComponent(topic)}&week=${week}`,
+  );
   return response.data;
 };
 
 export const getQuiz = async (topic, week) => {
-  const response = await api.get(`/learning/quiz?career=${encodeURIComponent(topic)}&week=${week}`);
+  const response = await api.get(
+    `/learning/quiz?career=${encodeURIComponent(topic)}&week=${week}`,
+  );
   return response.data;
 };
 
