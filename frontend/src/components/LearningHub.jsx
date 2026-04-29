@@ -19,11 +19,14 @@ const LearningHub = ({ user }) => {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [lessonContent, setLessonContent] = useState('');
   const [quiz, setQuiz] = useState(null);
-  const [userAnswer, setUserAnswer] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState([]);
   const [quizResult, setQuizResult] = useState(null);
+  const [quizScore, setQuizScore] = useState({ correct: 0, total: 0 });
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState('lesson');
 
+  const careerPath = user?.prediction?.career || 'Career Path';
   const topWeakness = user?.prediction?.plan?.weakness_rank?.[0]?.[0] || 'Topic Focus';
 
   useEffect(() => {
@@ -33,9 +36,12 @@ const LearningHub = ({ user }) => {
   const fetchLesson = async () => {
     setLoading(true);
     setQuizResult(null);
-    setUserAnswer(null);
+    setCurrentQuestionIndex(0);
+    setQuizAnswers([]);
+    setQuizScore({ correct: 0, total: 0 });
+    setQuiz(null);
     try {
-      const data = await getLesson(topWeakness, selectedWeek);
+      const data = await getLesson(careerPath, selectedWeek);
       setLessonContent(data.content);
     } catch (err) {
       setLessonContent("Failed to load schedule content. Please ensure the backend is running.");
@@ -48,8 +54,13 @@ const LearningHub = ({ user }) => {
     setLoading(true);
     setView('quiz');
     try {
-      const data = await getQuiz(topWeakness);
+      const data = await getQuiz(careerPath, selectedWeek);
       setQuiz(data);
+      const questions = Array.isArray(data.questions) ? data.questions : [data];
+      setCurrentQuestionIndex(0);
+      setQuizAnswers(Array(questions.length).fill(null));
+      setQuizResult(null);
+      setQuizScore({ correct: 0, total: questions.length });
     } catch (err) {
       console.error(err);
     } finally {
@@ -57,10 +68,29 @@ const LearningHub = ({ user }) => {
     }
   };
 
-  const handleQuizSubmit = () => {
-    if (userAnswer === null) return;
-    const isCorrect = userAnswer === quiz.answer;
-    setQuizResult(isCorrect ? 'correct' : 'incorrect');
+  const finalizeQuiz = (answers, questions) => {
+    const correctCount = questions.reduce((count, question, index) => {
+      return count + (answers[index] === question.answer ? 1 : 0);
+    }, 0);
+
+    setQuizScore({ correct: correctCount, total: questions.length });
+    setQuizResult(correctCount === questions.length ? 'correct' : 'incorrect');
+  };
+
+  const handleAnswerSelect = (optionIndex) => {
+    const quizQuestions = Array.isArray(quiz?.questions) ? quiz.questions : (quiz ? [quiz] : []);
+    if (quizQuestions.length === 0) return;
+
+    const nextAnswers = [...quizAnswers];
+    nextAnswers[currentQuestionIndex] = optionIndex;
+    setQuizAnswers(nextAnswers);
+
+    if (currentQuestionIndex >= quizQuestions.length - 1) {
+      finalizeQuiz(nextAnswers, quizQuestions);
+      return;
+    }
+
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
   const weeks = [
@@ -139,6 +169,9 @@ const LearningHub = ({ user }) => {
 
   const currentBlocks = lessonContent ? parseContent(lessonContent) : [];
 
+  const quizQuestions = Array.isArray(quiz?.questions) ? quiz.questions : (quiz ? [quiz] : []);
+  const activeQuestion = quizQuestions[currentQuestionIndex];
+
   return (
     <div className="lh-container">
         
@@ -150,8 +183,11 @@ const LearningHub = ({ user }) => {
               <CalendarDays size={18} /> Weekly Study Planner
             </div>
             <h1 className="lh-title">
-              {topWeakness} <span>Path</span>
+              {careerPath} <span>Path</span>
             </h1>
+            <p className="lh-assessment-sub" style={{ marginTop: '0.75rem' }}>
+              Primary focus: {topWeakness}
+            </p>
           </div>
           <div className="lh-ribbon">
             {weeks.map(week => (
@@ -221,30 +257,28 @@ const LearningHub = ({ user }) => {
                    <div className="lh-quiz-tag">
                      <HelpCircle size={14} style={{display: 'inline', marginRight: '6px'}}/> Knowledge Checkpoint
                    </div>
-                   <h3 className="lh-quiz-q">{quiz.question}</h3>
-                   
-                   <div className="lh-options-grid">
-                     {quiz.options.map((option, i) => (
-                       <button
-                         key={i}
-                         onClick={() => setUserAnswer(i)}
-                         className={`lh-option-btn ${userAnswer === i ? 'selected' : ''}`}
-                       >
-                         <span className="lh-option-letter">
-                           {String.fromCharCode(65 + i)}
-                         </span>
-                         <span>{option}</span>
-                       </button>
-                     ))}
+
+                   <div className="lh-schedule-card" style={{marginBottom: '1rem'}}>
+                     <div className="lh-label" style={{marginBottom: '0.75rem', color: '#94a3b8'}}>
+                       Question {currentQuestionIndex + 1} of {quizQuestions.length}
+                     </div>
+                     <h3 className="lh-quiz-q">{activeQuestion?.question}</h3>
+
+                     <div className="lh-options-grid">
+                       {activeQuestion?.options?.map((option, optionIndex) => (
+                         <button
+                           key={optionIndex}
+                           onClick={() => handleAnswerSelect(optionIndex)}
+                           className="lh-option-btn"
+                         >
+                           <span className="lh-option-letter">
+                             {String.fromCharCode(65 + optionIndex)}
+                           </span>
+                           <span>{option}</span>
+                         </button>
+                       ))}
+                     </div>
                    </div>
-                   
-                   <button
-                     disabled={userAnswer === null}
-                     onClick={handleQuizSubmit}
-                     className="lh-submit-btn"
-                   >
-                     Submit Evaluation <ArrowRight size={20} />
-                   </button>
                  </>
                ) : quizResult ? (
                  <>
@@ -255,10 +289,14 @@ const LearningHub = ({ user }) => {
                      {quizResult === 'correct' ? 'Mastery Verified!' : 'Gap Detected'}
                    </h3>
                    <p className="lh-result-desc">
-                     {quiz.explanation}
+                     You answered {quizScore.correct} of {quizScore.total} questions correctly. {' '}
+                     {(quizQuestions || []).filter(Boolean).map((item, index) => {
+                       const isCorrect = quizAnswers[index] === item.answer;
+                       return isCorrect ? null : item.explanation;
+                     }).filter(Boolean).join(' ')}
                    </p>
                    <button 
-                     onClick={() => { setView('lesson'); setQuizResult(null); setUserAnswer(null); }}
+                     onClick={() => { setView('lesson'); setQuizResult(null); setQuizAnswers([]); setQuizScore({ correct: 0, total: 0 }); }}
                      className="lh-submit-btn" style={{width: 'auto'}}
                    >
                      Return to Course Plan
