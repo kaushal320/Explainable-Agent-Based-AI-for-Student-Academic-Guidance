@@ -97,13 +97,13 @@ export const streamMessage = async (prompt, history, context, onChunk) => {
   }
 };
 
-export const getLesson = async (skill, week) => {
-  const response = await api.get(`/learning/lesson?skill=${skill}&week=${week}`);
+export const getLesson = async (topic, week) => {
+  const response = await api.get(`/learning/lesson?career=${encodeURIComponent(topic)}&week=${week}`);
   return response.data;
 };
 
-export const getQuiz = async (skill) => {
-  const response = await api.get(`/learning/quiz?skill=${skill}`);
+export const getQuiz = async (topic, week) => {
+  const response = await api.get(`/learning/quiz?career=${encodeURIComponent(topic)}&week=${week}`);
   return response.data;
 };
 
