@@ -145,8 +145,535 @@ def generate_weekly_goals(weaknesses):
     
     return goals.get(top_weakness, ["Keep practicing to improve your skills!"])
 
+
+def _split_topics(raw_value):
+    return [item.strip() for item in str(raw_value).split(",") if item.strip()]
+
+
+def _get_code_example(skill, topic, difficulty):
+    """Returns code examples relevant to skill and topic."""
+    code_samples = {
+        "Software Engineer": {
+            "beginner": {
+                "Programming Basics": 
+"""# Basic Python Function
+def greet(name):
+    return f"Hello, {name}!"
+
+# Using the function
+message = greet("Alice")
+print(message)  # Output: Hello, Alice!""",
+                "Variables and Types":
+"""# Declaring variables with different types
+name = "Alice"      # String
+age = 25            # Integer
+height = 5.6        # Float
+is_student = True   # Boolean
+
+print(f"{name} is {age} years old")""",
+            },
+            "intermediate": {
+                "Data Structures":
+"""# List and Dictionary operations
+students = ["Alice", "Bob", "Charlie"]
+grades = {"Alice": 95, "Bob": 87, "Charlie": 92}
+
+# Loop and access
+for student in students:
+    print(f"{student}: {grades[student]}")""",
+                "Object-Oriented Programming":
+"""# Class definition
+class Student:
+    def __init__(self, name, grade):
+        self.name = name
+        self.grade = grade
+    
+    def display_info(self):
+        return f"{self.name} - Grade: {self.grade}"
+
+# Create instance
+student = Student("Alice", "A")
+print(student.display_info())""",
+            },
+            "advanced": {
+                "System Design":
+"""# REST API Endpoint with FastAPI
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/api/students/{student_id}")
+async def get_student(student_id: int):
+    # Query database
+    student = await db.get_student(student_id)
+    return {"id": student_id, "name": student.name}""",
+                "Design Patterns":
+"""# Singleton Pattern
+class DatabaseConnection:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+# Always returns same instance
+db1 = DatabaseConnection()
+db2 = DatabaseConnection()
+assert db1 is db2  # True""",
+            }
+        },
+        "Data Scientist": {
+            "beginner": {
+                "Python":
+"""# Basic data analysis with Python
+import pandas as pd
+
+data = {'Name': ['Alice', 'Bob'], 'Score': [95, 87]}
+df = pd.DataFrame(data)
+print(df.head())
+print(f"Average Score: {df['Score'].mean()}")""",
+                "Statistics":
+"""# Basic statistics
+import numpy as np
+
+scores = [95, 87, 92, 88, 90]
+mean = np.mean(scores)
+std = np.std(scores)
+print(f"Mean: {mean}, Std Dev: {std}")""",
+            },
+            "intermediate": {
+                "Machine Learning":
+"""# Basic ML with Scikit-learn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+model = RandomForestClassifier(n_estimators=100)
+model.fit(X_train, y_train)
+score = model.score(X_test, y_test)
+print(f"Accuracy: {score:.2f}")""",
+                "Data Visualization":
+"""# Plotting with Matplotlib
+import matplotlib.pyplot as plt
+
+grades = [85, 90, 78, 92, 88]
+plt.plot(grades, marker='o')
+plt.title('Student Grades')
+plt.xlabel('Week')
+plt.ylabel('Grade')
+plt.show()""",
+            },
+            "advanced": {
+                "Deep Learning":
+"""# Neural Network with TensorFlow
+import tensorflow as tf
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+model.compile(optimizer='adam', loss='categorical_crossentropy')""",
+                "Feature Engineering":
+"""# Advanced feature creation
+def create_features(df):
+    df['avg_score'] = df[['exam1', 'exam2', 'exam3']].mean(axis=1)
+    df['score_variance'] = df[['exam1', 'exam2', 'exam3']].var(axis=1)
+    df['consistent_student'] = (df['score_variance'] < 50).astype(int)
+    return df""",
+            }
+        },
+        "Web Developer": {
+            "beginner": {
+                "HTML/CSS":
+"""<!-- Basic HTML structure -->
+<div class="card">
+    <h2>Welcome</h2>
+    <p>This is a web page example.</p>
+</div>
+
+/* Basic CSS styling */
+.card {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+}""",
+                "JavaScript Basics":
+"""// Event handling
+function handleClick() {
+    console.log("Button clicked!");
+    document.getElementById("status").textContent = "Clicked!";
+}
+
+// Add event listener
+document.getElementById("btn").addEventListener("click", handleClick);""",
+            },
+            "intermediate": {
+                "React Components":
+"""// React Functional Component
+import React, { useState } from 'react';
+
+function Counter() {
+    const [count, setCount] = useState(0);
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+        </div>
+    );
+}""",
+                "APIs and Data Fetching":
+"""// Fetching data from API
+async function fetchData() {
+    try {
+        const response = await fetch('/api/students');
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}""",
+            },
+            "advanced": {
+                "State Management":
+"""// Redux-like state management
+const [state, setState] = useState({
+    students: [],
+    loading: false,
+    error: null
+});
+
+const updateStudents = (action) => {
+    switch(action.type) {
+        case 'FETCH_START':
+            return { ...state, loading: true };
+        case 'FETCH_SUCCESS':
+            return { ...state, students: action.payload, loading: false };
+        default:
+            return state;
+    }
+};""",
+                "Performance Optimization":
+"""// React optimization with useMemo
+import { useMemo } from 'react';
+
+function StudentList({ students }) {
+    const sortedStudents = useMemo(() => 
+        [...students].sort((a, b) => b.grade - a.grade),
+        [students]
+    );
+    return <div>{sortedStudents.map(s => s.name)}</div>;
+}""",
+            }
+        },
+        "Backend Developer": {
+            "beginner": {
+                "Server Basics":
+"""# Simple HTTP server with Flask
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/api/status')
+def status():
+    return {'status': 'online'}
+
+if __name__ == '__main__':
+    app.run(debug=True)""",
+                "Database Basics":
+"""# Simple database query
+import sqlite3
+
+conn = sqlite3.connect('students.db')
+cursor = conn.cursor()
+cursor.execute('SELECT * FROM students')
+results = cursor.fetchall()
+print(results)
+conn.close()""",
+            },
+            "intermediate": {
+                "RESTful APIs":
+"""# RESTful endpoint with error handling
+@app.route('/api/students', methods=['GET', 'POST'])
+def students():
+    if request.method == 'GET':
+        return get_all_students()
+    elif request.method == 'POST':
+        data = request.json
+        return create_student(data)""",
+                "Authentication":
+"""# JWT Authentication
+from flask_jwt_extended import JWTManager, jwt_required
+
+app.config['JWT_SECRET_KEY'] = 'secret'
+jwt = JWTManager(app)
+
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected_route():
+    return {'message': 'Authorized!'}""",
+            },
+            "advanced": {
+                "Microservices":
+"""# Microservice with service discovery
+from fastapi import FastAPI
+from circuitbreaker import circuit
+
+app = FastAPI()
+
+@circuit(failure_threshold=5, recovery_timeout=60)
+async def call_auth_service():
+    return requests.get('http://auth-service:8000/verify')""",
+                "Scalability":
+"""# Caching and async operations
+import redis
+from celery import Celery
+
+cache = redis.Redis()
+celery = Celery(__name__)
+
+@app.get('/report/{report_id}')
+async def get_report(report_id: str):
+    cached = cache.get(f'report:{report_id}')
+    if cached:
+        return json.loads(cached)
+    # Trigger async job
+    process_report.delay(report_id)""",
+            }
+        }
+    }
+    
+    skill_codes = code_samples.get(skill, {})
+    difficulty_codes = skill_codes.get(difficulty, {})
+    
+    # Try to find matching topic or return first available
+    if topic in difficulty_codes:
+        return difficulty_codes[topic]
+    
+    # Return first available or generic message
+    first_topic = list(difficulty_codes.keys())[0] if difficulty_codes else None
+    if first_topic:
+        return difficulty_codes[first_topic]
+    
+    return f"# {skill} - {difficulty.capitalize()} Level\nCode examples for this career path coming soon!"
+
+
+def _week_study_plan(skill, row, week):
+    beginner_topics = _split_topics(row['beginner'])
+    intermediate_topics = _split_topics(row['intermediate'])
+    advanced_topics = _split_topics(row['advanced'])
+    projects = _split_topics(row['projects'])
+    tools = _split_topics(row['tools'])
+    
+    def get_topics_text(topics_list, count=2):
+        return ", ".join(topics_list[:count]) if topics_list else "core concepts"
+    
+    def get_first_topic(topics_list):
+        return topics_list[0] if topics_list else "core concepts"
+    
+    # Generate code examples
+    week1_code = _get_code_example(skill, get_first_topic(beginner_topics), "beginner")
+    week2_code = _get_code_example(skill, get_first_topic(intermediate_topics), "intermediate")
+    week3_code = _get_code_example(skill, get_first_topic(advanced_topics), "advanced")
+    week4_code = _get_code_example(skill, get_first_topic(advanced_topics), "advanced")
+    
+    plans = {
+        1: {
+            "title": f"### Week 1: {skill} Foundations",
+            "learning_objectives": f"""#### Learning Objectives
+By the end of this week, you should be able to:
+- Understand and explain key {skill.lower()} concepts
+- Set up your development environment
+- Write and run your first {skill.lower()} program
+- Understand {get_topics_text(beginner_topics, 2)}""",
+            "concepts": f"""#### Core Concepts
+**Topics**: {get_topics_text(beginner_topics, 3)}
+
+{get_first_topic(beginner_topics)} is the foundation of becoming a skilled {skill}. Start by understanding the fundamentals and building your mental model.
+
+**Key Learning Points**:
+- Get comfortable with basic syntax and patterns
+- Learn how to structure simple programs
+- Understand variables, data types, and basic operations
+- Practice writing clean, readable code""",
+            "code_example": f"""#### Code Example
+```python
+{week1_code}
+```
+Try running this example and modify it to understand how it works.""",
+            "practice": f"""#### Practice Task
+1. **Setup**: Install the necessary tools from this list: {get_topics_text(tools, 2)}
+2. **Exercise**: Create a simple program that demonstrates one of the concepts above
+3. **Explore**: Modify the code example and try different inputs to see what happens
+4. **Document**: Write a short description of what your program does""",
+            "checkpoint": "**Checkpoint**: Can you explain what the code does in your own words? Can you modify it to do something new?",
+        },
+        2: {
+            "title": f"### Week 2: {skill} Core Practice",
+            "learning_objectives": f"""#### Learning Objectives
+By the end of this week, you should be able to:
+- Apply {get_first_topic(intermediate_topics)} in practical scenarios
+- Write more complex {skill.lower()} solutions
+- Debug and test your code
+- Understand design principles""",
+            "concepts": f"""#### Building on Week 1
+Now that you understand the basics, let's dive deeper into {get_topics_text(intermediate_topics, 2)}.
+
+**Key Learning Points**:
+- Intermediate patterns and practices
+- How to structure larger programs
+- Error handling and debugging techniques
+- Best practices from industry standards""",
+            "code_example": f"""#### Code Example - Intermediate Pattern
+```python
+{week2_code}
+```
+Notice how this builds on the Week 1 foundations and adds more complexity.""",
+            "practice": f"""#### Practice Task
+1. **Build**: Create a small project that uses {get_first_topic(intermediate_topics)}
+2. **Debug**: Add error handling to make your code more robust
+3. **Test**: Write test cases to verify your code works correctly
+4. **Review**: Compare your solution with the provided examples""",
+            "checkpoint": "**Checkpoint**: Can you explain why certain design choices were made? Can you extend the code without breaking it?",
+        },
+        3: {
+            "title": f"### Week 3: {skill} Applied Skills",
+            "learning_objectives": f"""#### Learning Objectives
+By the end of this week, you should be able to:
+- Implement {get_first_topic(advanced_topics)} effectively
+- Solve real-world {skill.lower()} challenges
+- Optimize and refactor code
+- Understand architectural patterns""",
+            "concepts": f"""#### Advanced Concepts
+This week focuses on {get_topics_text(advanced_topics, 2)}. These are the skills that separate junior from senior developers.
+
+**Key Learning Points**:
+- Advanced patterns and architectures
+- Performance optimization techniques
+- Security considerations
+- Professional development practices""",
+            "code_example": f"""#### Code Example - Advanced Implementation
+```python
+{week3_code}
+```
+This example demonstrates enterprise-level patterns and practices.""",
+            "practice": f"""#### Practice Task
+1. **Challenge**: Take a simple Week 2 project and refactor it using advanced patterns
+2. **Optimize**: Improve performance, readability, or security
+3. **Document**: Write technical documentation for your code
+4. **Present**: Explain your design decisions and tradeoffs""",
+            "checkpoint": "**Checkpoint**: Can you identify why advanced patterns matter? Can you recommend improvements to existing code?",
+        },
+        4: {
+            "title": f"### Week 4: {skill} Mastery Sprint - Capstone Project",
+            "learning_objectives": f"""#### Learning Objectives
+By the end of this week, you should be able to:
+- Build a complete portfolio-ready project
+- Integrate all skills from weeks 1-3
+- Deploy and present your work
+- Discuss your learning journey professionally""",
+            "concepts": f"""#### Capstone Project
+Bring everything together in a final project that showcases your growth. Choose from these project themes:
+
+**Project Options**:
+- {projects[0] if projects else "Build a real-world solution"}
+- {projects[1] if len(projects) > 1 else "Create an improved version of your Week 2 project"}
+- Design a system that uses all the skills from weeks 1-3""",
+            "code_example": f"""#### Project Architecture Pattern
+```python
+{week4_code}
+```
+Use this pattern as the foundation for your capstone project.""",
+            "practice": f"""#### Capstone Task
+1. **Plan**: Define your project scope and requirements
+2. **Build**: Implement using weeks 1-3 skills and advanced patterns
+3. **Test**: Write comprehensive tests for your project
+4. **Deploy**: Get your project running and accessible
+5. **Document**: Create README and technical documentation
+6. **Present**: Record a short demo explaining your project""",
+            "checkpoint": "**Checkpoint**: Can you explain your entire solution to someone else? Is your code production-ready?",
+            "next_steps": f"""#### Moving Forward
+Congratulations on completing this 4-week sprint! Here's what's next:
+- **Continue Learning**: Explore advanced topics in {get_first_topic(advanced_topics)}
+- **Contribute**: Find open-source projects using {get_first_topic(tools)} to contribute to
+- **Specialize**: Choose a specialization within {skill}
+- **Network**: Connect with other {skill.lower()}s and share your work"""
+        },
+    }
+
+    return plans.get(week, plans[4])
+
+
+def _format_study_content(skill, row, week):
+    plan = _week_study_plan(skill, row, week)
+    
+    content_parts = [
+        plan['title'],
+        plan['learning_objectives'],
+        plan['concepts'],
+    ]
+    
+    # Add code example if available
+    if 'code_example' in plan and plan['code_example']:
+        content_parts.append(plan['code_example'])
+    
+    content_parts.extend([
+        plan['practice'],
+        plan['checkpoint'],
+    ])
+    
+    # Add next steps for week 4
+    if week == 4 and 'next_steps' in plan:
+        content_parts.append(plan['next_steps'])
+    else:
+        content_parts.append(
+            f"**Reflection Question**\n"
+            f"Write 2-3 lines about: (1) What became easier this week, (2) What still feels challenging, (3) One concept you'd like to explore further."
+        )
+    
+    # Add suggested tools
+    content_parts.append(f"\n**Suggested Tools & Resources**\n{row['tools']}")
+    
+    return "\n\n".join(content_parts)
+
 def get_lesson_content(skill, week):
     """Returns educational content for a given skill and week."""
+    if skill in content_df["career"].values:
+        row = content_df[content_df["career"] == skill].iloc[0]
+        return _format_study_content(skill, row, week) + f"\n\n**Suggested Tools**\n{row['tools']}"
+
+    simple_week_labels = {
+        1: "Foundations",
+        2: "Core Practice",
+        3: "Applied Skills",
+        4: "Mastery"
+    }
+
+    if skill in ["Python", "SQL", "Java", "GPA"]:
+        week_label = simple_week_labels.get(week, "Learning Sprint")
+        difficulty_line = {
+            1: "Start with the easiest concepts and build confidence.",
+            2: "Move from basics into guided practice.",
+            3: "Work on harder problems and real scenarios.",
+            4: "Combine everything into a capstone-level task."
+        }.get(week, "Keep building steadily.")
+
+        study_goal = {
+            1: f"Learn the base definitions, simple examples, and first-use cases for {skill}.",
+            2: f"Practice with short exercises that make you use {skill} without help.",
+            3: f"Solve applied problems that are closer to real project work in {skill}.",
+            4: f"Finish with a larger task that pulls together everything you learned in {skill}."
+        }.get(week, f"Keep building steadily in {skill}.")
+
+        return (
+            f"### Week {week}: {skill} {week_label}\n\n"
+            f"**Difficulty**\n{difficulty_line}\n\n"
+            f"**Study Goal**\n{study_goal}\n\n"
+            f"**Weekly Action**\nComplete one practice exercise that matches the week level and review your mistakes.\n\n"
+            f"**Self-Check**\nWrite down 3 things you understand and 1 thing you still need to improve."
+        )
+
     lessons = {
         "Python": {
             1: "### Week 1: Python Basics & Fundamentals 🐍\n\n**Introduction to Python**\nPython is a high-level, interpreted programming language known for its readability and concise syntax. It is heavily used in Data Science, Web Development, and Automation. Before writing advanced scripts, you must master the building blocks: variables, data types, and control flow.\n\n**Variables and Data Types:**\nPython is dynamically typed, meaning you don't need to declare a variable's type explicitly. The core data types include `int` (integers), `float` (decimals), `str` (text), and `bool` (True/False).\n\n```python\n# Variable Assignment Example\nage = 20          # Integer\nheight = 5.9      # Float\nname = 'Alice'    # String\nis_student = True # Boolean\n```\n\n**Control Structures (If-Else & Loops):**\nLogic in programming relies on conditionals and loops.\n- `if`, `elif`, `else` let your code make decisions.\n- `for` loops iterate over a sequence (like a list or a string).\n- `while` loops run as long as a condition is true.\n\n```python\n# Conditional Logic\nif age >= 18:\n    print(f'{name} is an adult.')\nelse:\n    print(f'{name} is a minor.')\n\n# Looping\nfor i in range(3):\n    print(f'Counting: {i}')\n```\n\n**Action Item for this Week:** \nInstall Python and an IDE like VS Code. Write a script that asks the user for their age using `input()`, and prints out what year they will turn 100.",
@@ -177,8 +704,184 @@ def get_lesson_content(skill, week):
     return lessons.get(skill, {}).get(week, "No lesson found for this topic.")
 
 
-def get_mock_quiz(weakest_skill):
+def _split_topics(raw_value):
+    return [item.strip() for item in str(raw_value).split(",") if item.strip()]
+
+
+def _build_options(correct_topic, distractor_sources):
+    options = []
+    for topic in _split_topics(correct_topic):
+        if topic not in options:
+            options.append(topic)
+
+    for source in distractor_sources:
+        for topic in _split_topics(source):
+            if topic and topic not in options:
+                options.append(topic)
+            if len(options) >= 4:
+                break
+        if len(options) >= 4:
+            break
+
+    while len(options) < 4:
+        options.append("Review and practice")
+
+    return options[:4]
+
+
+def _make_question(question, correct_topic, distractor_sources, explanation):
+    options = _build_options(correct_topic, distractor_sources)
+    return {
+        "question": question,
+        "options": options,
+        "answer": 0,
+        "explanation": explanation
+    }
+
+
+def get_mock_quiz(weakest_skill, week=1):
     """Returns a question, options, and the correct answer index."""
+    if weakest_skill in content_df["career"].values:
+        row = content_df[content_df["career"] == weakest_skill].iloc[0]
+        beginner_topic = _split_topics(row["beginner"])[0] if _split_topics(row["beginner"]) else str(row["beginner"])
+        intermediate_topic = _split_topics(row["intermediate"])[0] if _split_topics(row["intermediate"]) else str(row["intermediate"])
+        advanced_topic = _split_topics(row["advanced"])[0] if _split_topics(row["advanced"]) else str(row["advanced"])
+        project_topic = _split_topics(row["projects"])[0] if _split_topics(row["projects"]) else str(row["projects"])
+        tool_topic = _split_topics(row["tools"])[0] if _split_topics(row["tools"]) else str(row["tools"])
+
+        week_profile = {
+            1: {
+                "stage": "beginner",
+                "goal": "build confidence with the basic concepts",
+                "task": "read and practice the beginner ideas",
+                "difficulty": "simple",
+                "topic": beginner_topic,
+            },
+            2: {
+                "stage": "core",
+                "goal": "practice core skills with guidance",
+                "task": "complete a guided exercise",
+                "difficulty": "moderate",
+                "topic": intermediate_topic,
+            },
+            3: {
+                "stage": "advanced",
+                "goal": "apply harder concepts in real tasks",
+                "task": "build a harder mini-project",
+                "difficulty": "hard",
+                "topic": advanced_topic,
+            },
+            4: {
+                "stage": "portfolio",
+                "goal": "finish a portfolio-ready project",
+                "task": "deliver a capstone-style project",
+                "difficulty": "capstone",
+                "topic": project_topic,
+            },
+        }.get(week, {
+            "stage": "beginner",
+            "goal": "build confidence with the basic concepts",
+            "task": "read and practice the beginner ideas",
+            "difficulty": "simple",
+            "topic": beginner_topic,
+        })
+
+        question_specs = [
+            (
+                f"Question 1: Which {week_profile['stage']} topic should you focus on for {weakest_skill} Week {week}?",
+                week_profile["topic"],
+                [intermediate_topic, advanced_topic, project_topic, tool_topic],
+                f"Week {week} starts at the {week_profile['difficulty']} level with {week_profile['topic']}."
+            ),
+            (
+                f"Question 2: What is the main study goal for Week {week} in the {weakest_skill} path?",
+                week_profile["goal"],
+                ["Ignore practice", "Skip the lesson", "Jump directly to the final exam"],
+                f"Week {week} should focus on {week_profile['goal']}."
+            ),
+            (
+                f"Question 3: Which task best matches the Week {week} study plan?",
+                week_profile["task"],
+                ["No practice at all", "Only watch videos", "Repeat Week 1 forever"],
+                f"The weekly task should be {week_profile['task']}."
+            ),
+            (
+                f"Question 4: Which resource is most useful for the Week {week} plan?",
+                tool_topic,
+                [beginner_topic, intermediate_topic, advanced_topic],
+                f"The tools for {weakest_skill} help you carry out the Week {week} work."
+            ),
+            (
+                f"Question 5: How difficult should Week {week} feel compared with the earlier week?",
+                week_profile["difficulty"],
+                ["easier", "unchanged", "random"],
+                f"Week {week} should feel {week_profile['difficulty']} as part of the progression."
+            ),
+            (
+                f"Question 6: Which concept level matches Week {week} best?",
+                {
+                    1: "simple basics",
+                    2: "guided practice",
+                    3: "real-world application",
+                    4: "portfolio mastery",
+                }.get(week, "guided practice"),
+                ["skip learning", "no review", "same as week 1"],
+                f"Week {week} is meant to move toward {week_profile['difficulty']} learning."
+            ),
+            (
+                f"Question 7: What should you complete before moving to the next week?",
+                week_profile["task"],
+                ["Nothing", "A random topic", "Only a summary"],
+                f"You should complete the week task: {week_profile['task']}."
+            ),
+            (
+                f"Question 8: Which checkpoint shows you understood Week {week}?",
+                {
+                    1: "Explain the beginner idea in your own words",
+                    2: "Use the core idea without looking at notes",
+                    3: "Connect the idea to a project task",
+                    4: "Show a finished project and explain it",
+                }.get(week, "Explain the idea clearly"),
+                ["Ignore the topic", "Memorize only one word", "Stay at the same level"],
+                f"The checkpoint should match the {week_profile['stage']} level of the week."
+            ),
+            (
+                f"Question 9: Which project focus matches Week {week} best?",
+                project_topic,
+                [beginner_topic, intermediate_topic, advanced_topic],
+                f"The project focus for this path is {project_topic}."
+            ),
+            (
+                f"Question 10: What should the end result of Week {week} look like?",
+                {
+                    1: "A clear understanding of the basics",
+                    2: "A guided exercise with fewer mistakes",
+                    3: "A harder mini-project",
+                    4: "A portfolio-ready final project",
+                }.get(week, "A completed weekly task"),
+                ["No progress", "Random notes", "Only watching a video"],
+                f"The end result should match the {week_profile['difficulty']} level."
+            ),
+        ]
+
+        questions = [
+            _make_question(question, correct, distractors, explanation)
+            for question, correct, distractors, explanation in question_specs
+        ]
+
+        first_question = questions[0]
+
+        return {
+            "career": weakest_skill,
+            "week": week,
+            "title": f"Week {week} Assessment: {weakest_skill}",
+            "questions": questions,
+            "question": first_question["question"],
+            "options": first_question["options"],
+            "answer": first_question["answer"],
+            "explanation": first_question["explanation"],
+        }
+
     quizzes = {
         "Python": {
             "question": "Which keyword is used to define a function in Python?",
