@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Feedback from './components/Feedback';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
@@ -66,13 +70,21 @@ function App() {
 
   return (
     <div className="App">
-      {!authUser ? (
-        <Login onAuthenticated={handleAuthenticated} />
-      ) : !user ? (
-        <Onboarding onComplete={handleOnboardingComplete} />
-      ) : (
-        <Dashboard user={user} onLogout={handleLogout} />
-      )}
+      <Navbar isAuthenticated={!!authUser} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/app/*" element={
+          !authUser ? (
+            <Login onAuthenticated={handleAuthenticated} />
+          ) : !user ? (
+            <Onboarding onComplete={handleOnboardingComplete} />
+          ) : (
+            <Dashboard user={user} onLogout={handleLogout} />
+          )
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
