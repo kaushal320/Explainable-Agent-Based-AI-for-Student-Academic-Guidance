@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api.endpoints import predict, chat, learning, knowledge, auth
+from .api.endpoints import predict, chat, learning, knowledge, auth, feedback
 
 from .core.lifespan import lifespan
 import logging
@@ -36,6 +36,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Tutoring"])
 app.include_router(learning.router, prefix="/api/learning", tags=["Learning Resources"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["Knowledge Base (RAG)"])
+app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
 
 @app.get("/")
 async def root():
