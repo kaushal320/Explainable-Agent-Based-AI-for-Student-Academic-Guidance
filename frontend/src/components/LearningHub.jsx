@@ -212,7 +212,7 @@ const LearningHub = ({ user }) => {
             <h1 className="lh-title">
               {careerPath} <span>Path</span>
             </h1>
-            <p className="lh-assessment-sub" style={{ marginTop: "0.75rem" }}>
+            <p style={{ marginTop: '0.75rem', color: 'rgba(255,255,255,0.65)', fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Primary focus: {topWeakness}
             </p>
           </div>
@@ -453,11 +453,12 @@ const LearningHub = ({ user }) => {
           </div>
 
           <button onClick={startQuiz} className="lh-assessment-btn">
-            <Sparkles size={36} color="#bfdbfe" />
+            <Sparkles size={36} color="#c7d2fe" />
             <div>
               <div className="lh-assessment-title">Take Assessment</div>
               <div className="lh-assessment-sub">Unlock Next Stage</div>
             </div>
+            <ArrowRight size={22} color="rgba(255,255,255,0.5)" />
           </button>
         </div>
       </div>

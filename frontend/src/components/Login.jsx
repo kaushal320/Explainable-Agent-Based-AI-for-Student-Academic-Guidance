@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2, Lock, Mail, User } from 'lucide-react';
 import { loginUser, registerUser } from '../api';
 
-const Login = ({ onAuthenticated }) => {
-  const [mode, setMode] = useState('login');
+const Login = ({ onAuthenticated, initialMode }) => {
+  const [mode, setMode] = useState(initialMode || 'login');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (initialMode) setMode(initialMode);
+  }, [initialMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +29,7 @@ const Login = ({ onAuthenticated }) => {
 
       const data = mode === 'login' ? await loginUser(payload) : await registerUser(payload);
       onAuthenticated(data);
+      navigate('/app');
     } catch (err) {
       setError(err?.response?.data?.detail || 'Authentication failed. Please try again.');
     } finally {
@@ -30,7 +38,7 @@ const Login = ({ onAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-6 site-container">
       <div className="scholar-card auth-card">
         <div className="scholar-header" style={{ padding: '2.25rem 2rem' }}>
           <h1 className="scholar-h1 text-white mb-2" style={{ fontSize: '2rem' }}>Scholar Access</h1>
@@ -39,10 +47,22 @@ const Login = ({ onAuthenticated }) => {
 
         <div className="p-10">
           <div className="auth-mode-tabs">
-            <button className={`auth-mode-btn ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>
+            <button
+              className={`auth-mode-btn ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => {
+                setMode('login');
+                navigate('/login');
+              }}
+            >
               Login
             </button>
-            <button className={`auth-mode-btn ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>
+            <button
+              className={`auth-mode-btn ${mode === 'register' ? 'active' : ''}`}
+              onClick={() => {
+                setMode('register');
+                navigate('/register');
+              }}
+            >
               Register
             </button>
           </div>
