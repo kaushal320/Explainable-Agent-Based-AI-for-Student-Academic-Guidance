@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Lock, Mail, User } from 'lucide-react';
-import { loginUser, registerUser } from '../api';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Lock, Mail, User } from "lucide-react";
+import { loginUser, registerUser } from "../api";
 
 const Login = ({ onAuthenticated, initialMode }) => {
-  const [mode, setMode] = useState(initialMode || 'login');
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [mode, setMode] = useState(initialMode || "login");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
@@ -20,18 +20,24 @@ const Login = ({ onAuthenticated, initialMode }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     try {
       const payload = { email, password };
-      if (mode === 'register') {
+      if (mode === "register") {
         payload.full_name = fullName;
       }
 
-      const data = mode === 'login' ? await loginUser(payload) : await registerUser(payload);
+      const data =
+        mode === "login"
+          ? await loginUser(payload)
+          : await registerUser(payload);
       onAuthenticated(data);
-      navigate('/app');
+      navigate("/app");
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Authentication failed. Please try again.');
+      setError(
+        err?.response?.data?.detail ||
+          "Authentication failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -40,27 +46,34 @@ const Login = ({ onAuthenticated, initialMode }) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 site-container">
       <div className="scholar-card auth-card">
-        <div className="scholar-header" style={{ padding: '2.25rem 2rem' }}>
-          <h1 className="scholar-h1 text-white mb-2" style={{ fontSize: '2rem' }}>Scholar Access</h1>
-          <p className="scholar-mini text-white opacity-70">Secure Student Login</p>
+        <div className="scholar-header" style={{ padding: "2.25rem 2rem" }}>
+          <h1
+            className="scholar-h1 text-white mb-2"
+            style={{ fontSize: "2rem" }}
+          >
+            Scholar Access
+          </h1>
+          <p className="scholar-mini text-white opacity-70">
+            Secure Student Login
+          </p>
         </div>
 
         <div className="p-10">
           <div className="auth-mode-tabs">
             <button
-              className={`auth-mode-btn ${mode === 'login' ? 'active' : ''}`}
+              className={`auth-mode-btn ${mode === "login" ? "active" : ""}`}
               onClick={() => {
-                setMode('login');
-                navigate('/login');
+                setMode("login");
+                navigate("/login");
               }}
             >
               Login
             </button>
             <button
-              className={`auth-mode-btn ${mode === 'register' ? 'active' : ''}`}
+              className={`auth-mode-btn ${mode === "register" ? "active" : ""}`}
               onClick={() => {
-                setMode('register');
-                navigate('/register');
+                setMode("register");
+                navigate("/register");
               }}
             >
               Register
@@ -68,7 +81,7 @@ const Login = ({ onAuthenticated, initialMode }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
-            {mode === 'register' && (
+            {mode === "register" && (
               <label className="auth-field">
                 <span className="scholar-label">Full Name</span>
                 <div className="auth-input-wrap">
@@ -119,7 +132,13 @@ const Login = ({ onAuthenticated, initialMode }) => {
             {error && <p className="auth-error">{error}</p>}
 
             <button type="submit" disabled={loading} className="btn-premium">
-              {loading ? <Loader2 className="animate-spin" size={20} /> : mode === 'login' ? 'Sign In' : 'Create Account'}
+              {loading ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : mode === "login" ? (
+                "Sign In"
+              ) : (
+                "Create Account"
+              )}
             </button>
           </form>
         </div>
