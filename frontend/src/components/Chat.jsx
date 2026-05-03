@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, User, Bot, Loader2, Sparkles, BrainCircuit, ChevronRight, MessageSquare, Zap, Cpu } from 'lucide-react';
 import { streamMessage } from '../api';
+import { useNavigate } from 'react-router-dom';
 
 const MarkdownText = ({ text }) => {
   const parseContent = (rawText) => {
@@ -134,6 +135,8 @@ const Chat = ({ user }) => {
     { label: "Improve GPA", icon: Sparkles, color: '#b45309' }
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="chat-window-scholar" onClick={handleChatClick}>
       
@@ -211,7 +214,10 @@ const Chat = ({ user }) => {
              {quickActions.map(action => (
                <button 
                  key={action.label}
-                 onClick={() => handleSend(action.label)}
+                 onClick={() => {
+                   if (action.label === 'Show My Roadmap') return navigate('/app/roadmap');
+                   return handleSend(action.label);
+                 }}
                  className="action-pill-scholar"
                >
                  <action.icon size={14} style={{ color: action.color }} />
