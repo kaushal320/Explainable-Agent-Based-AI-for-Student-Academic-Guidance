@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from ...models.feedback import FeedbackCreate
 from ...db.mongodb import db_manager
@@ -9,7 +9,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/")
-async def submit_feedback(feedback: FeedbackCreate) -> Dict[str, Any]:
+async def submit_feedback(
+    feedback: FeedbackCreate,
+) -> Dict[str, Any]:
     try:
         db = db_manager.db
         if db is None:
@@ -17,7 +19,16 @@ async def submit_feedback(feedback: FeedbackCreate) -> Dict[str, Any]:
             logger.info(f"Feedback received (No DB): {feedback.model_dump()}")
             return {"status": "success", "message": "Feedback submitted successfully (Mock)"}
             
-        feedback_doc = feedback.model_dump()
+        payload = feedback.model_dump()
+        comment = (payload.get("comment") or "").strip()
+        if len(comment) > 2000:
+            raise HTTPException(status_code=400, detail="Comment too long")
+
+        feedback_doc = {
+            "rating": payload.get("rating"),
+            "comment": comment,
+            "user_email": payload.get("user_email"),
+        }
         feedback_doc["created_at"] = datetime.utcnow()
         
         result = await db.feedbacks.insert_one(feedback_doc)

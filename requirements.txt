@@ -4,16 +4,25 @@ uvicorn
 pydantic-settings
 python-dotenv
 groq
+email-validator
+
+# OAuth & Authentication
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
 
 # Data & ML
 pandas
 numpy
 joblib
 scikit-learn
+shap
 
 # Testing
 pytest
 httpx
+vosk
+imageio-ffmpeg
 
 # Database & RAG Components
 motor
@@ -25,5 +34,6 @@ langchain-groq
 langchain-community
 langchain-mongodb
 langchain-huggingface
+langchain-text-splitters
 sentence-transformers
 python-multipart
