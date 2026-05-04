@@ -31,7 +31,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
         # A light CSP for APIs (no HTML rendering here).
-        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none';")
+        if not request.url.path.startswith(("/docs", "/openapi.json", "/redoc")):
+            response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none';")
         if settings.ENV.lower() == "prod":
             # HSTS only makes sense when actually served over HTTPS.
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")

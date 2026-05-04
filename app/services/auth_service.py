@@ -24,7 +24,7 @@ from .email_service import EmailService
 
 # Use PBKDF2-SHA256 to avoid passlib+bcrypt backend compatibility issues.
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 
 class AuthService:

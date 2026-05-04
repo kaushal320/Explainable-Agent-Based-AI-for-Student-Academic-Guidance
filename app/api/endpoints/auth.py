@@ -6,9 +6,18 @@ from ...services.auth_service import AuthService, require_user
 router = APIRouter()
 
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 @router.post("/register", response_model=RegisterResponse)
 async def register(data: UserCreate):
     return AuthService.register(data)
+
+
+@router.post("/token")
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    # This endpoint is specifically for the Swagger UI 'Authorize' button which uses Form-Data
+    data = UserLogin(email=form_data.username, password=form_data.password)
+    return AuthService.login(data)
 
 
 @router.post("/login", response_model=AuthResponse)
