@@ -1505,6 +1505,7 @@ body {
   padding: 0.5rem;
   border-radius: 1.5rem;
   border: 1px solid rgba(255,255,255,0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
