@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Brain, MessageSquare, Home, LogIn, BookOpen, Map } from "lucide-react";
+import {
+  Brain,
+  MessageSquare,
+  Home,
+  LogIn,
+  BookOpen,
+  MapPin,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 const Navbar = ({ isAuthenticated }) => {
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-  const roadmapPath = isAuthenticated ? "/app/roadmap" : "/roadmap";
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Don't show navbar if we are inside the /app route (Dashboard handles its own navigation)
   if (location.pathname.startsWith("/app")) {
@@ -22,64 +19,53 @@ const Navbar = ({ isAuthenticated }) => {
   }
 
   return (
-    <nav className={`site-navbar ${scrolled ? "scrolled" : ""}`}>
+    <nav className="site-navbar">
       <div className="site-container nav-inner">
         <Link to="/" className="flex items-center gap-3 group">
-          <motion.div
-            whileHover={{ scale: 1.08, rotate: -5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-            className="p-2.5 rounded-2xl shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-shadow"
-            style={{ background: 'linear-gradient(135deg, #2563eb 0%, #6366f1 100%)' }}
-          >
-            <Brain size={22} className="text-white" />
-          </motion.div>
+          <div className="p-2 bg-indigo-600 rounded-xl group-hover:scale-105 transition-transform shadow-lg shadow-indigo-200">
+            <Brain size={20} className="text-white" />
+          </div>
           <div>
-            <h1 className="font-black text-xl text-slate-800 tracking-tight leading-none">Scholar<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600"> Hub</span></h1>
-            <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5">AI Academic Guidance</p>
+            <h1 className="font-black text-xl text-slate-800 tracking-tight leading-none">
+              Scholar Hub
+            </h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+              AI Tutor
+            </p>
           </div>
         </Link>
 
         <div className="nav-links">
           <Link
             to="/"
-            className={`nav-link ${location.pathname === "/" ? "active" : ""}`}
+            className={`nav-link ${location.pathname === "/" ? "text-indigo-600" : ""}`}
           >
-            <div className="flex items-center gap-2">
-              <Home size={16} />
-              <span>Home</span>
-            </div>
+            <Home size={16} />
+            <span>Home</span>
+          </Link>
+          <Link
+            to="/learning"
+            className={`nav-link ${location.pathname === "/learning" ? "text-indigo-600" : ""}`}
+          >
+            <BookOpen size={16} />
+            <span>Learning</span>
+          </Link>
+          <Link
+            to="/resources"
+            className={`nav-link ${location.pathname === "/resources" ? "text-indigo-600" : ""}`}
+          >
+            <MapPin size={16} />
+            <span>Resources</span>
           </Link>
           <Link
             to="/feedback"
-            className={`nav-link ${location.pathname === "/feedback" ? "active" : ""}`}
+            className={`nav-link ${location.pathname === "/feedback" ? "text-indigo-600" : ""}`}
           >
-            <div className="flex items-center gap-2">
-              <MessageSquare size={16} />
-              <span>Feedback</span>
-            </div>
+            <MessageSquare size={16} />
+            <span>Feedback</span>
           </Link>
 
-          <Link
-            to="/learning"
-            className={`nav-link ${location.pathname === "/learning" ? "active" : ""}`}
-          >
-            <div className="flex items-center gap-2">
-              <BookOpen size={16} />
-              <span>Learning</span>
-            </div>
-          </Link>
-
-          <Link
-            to={roadmapPath}
-            className={`nav-link ${location.pathname === roadmapPath ? "active" : ""}`}
-          >
-            <div className="flex items-center gap-2">
-              <Map size={16} />
-              <span>Roadmap</span>
-            </div>
-          </Link>
-
-          <div className="w-px h-6 bg-slate-200 mx-2"></div>
+          <div className="w-px h-6 bg-slate-200"></div>
 
           <Link to="/app">
             <motion.button

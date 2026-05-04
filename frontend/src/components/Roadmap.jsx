@@ -1,16 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, AlertCircle, Award, CheckCircle, ChevronRight, BarChart2, Rocket, Map as MapIcon } from 'lucide-react';
+import { Target, AlertCircle, Award, CheckCircle, ChevronRight, BarChart2, Rocket, Map as MapIcon, Microscope } from 'lucide-react';
 
 const Roadmap = ({ prediction }) => {
-  const { career, plan, skills } = prediction;
+  const { career, plan, skills, explanation } = prediction;
   const topWeakness = plan.weakness_rank[0][0];
 
   const skillData = [
-    { label: 'Python', value: skills.Python, max: 3 },
-    { label: 'SQL', value: skills.SQL, max: 3 },
-    { label: 'Java', value: skills.Java, max: 3 },
-    { label: 'GPA', value: skills.GPA, max: 4 },
+    { label: 'Python', value: skills?.Python || 0, max: 3 },
+    { label: 'SQL', value: skills?.SQL || 0, max: 3 },
+    { label: 'Java', value: skills?.Java || 0, max: 3 },
+    { label: 'GPA', value: skills?.GPA || 0, max: 4 },
   ];
 
   return (
@@ -44,6 +44,76 @@ const Roadmap = ({ prediction }) => {
           </p>
         </div>
       </motion.div>
+
+      {explanation && (
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="glass-panel rounded-[2.5rem] border border-indigo-100 shadow-lg p-7 md:p-9 space-y-6"
+        >
+          <div className="flex flex-wrap items-center gap-4 border-b border-indigo-50 pb-5">
+            <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/25">
+              <Microscope className="text-white" size={22} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-800 uppercase tracking-widest">Explainable prediction</h3>
+              <p className="text-sm text-slate-500 font-semibold mt-1">
+                Decision-tree signal from your profile (SHAP-style local drivers + global feature importance).
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-5 space-y-3">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Model confidence</div>
+              <p className="text-2xl font-black text-slate-800">
+                {explanation.confidence != null ? (explanation.confidence * 100).toFixed(1) : '0.0'}%
+                <span className="text-sm font-bold text-slate-400 ml-2">top class</span>
+              </p>
+              {explanation.runner_up_career && (
+                <p className="text-sm text-slate-600 font-semibold leading-relaxed">
+                  Runner-up: <strong className="text-slate-800">{explanation.runner_up_career}</strong>
+                  {explanation.runner_up_confidence != null && (
+                    <span className="text-slate-400"> ({(explanation.runner_up_confidence * 100).toFixed(1)}%)</span>
+                  )}
+                </p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-3">Top drivers (this prediction)</div>
+              <ul className="space-y-2">
+                {(explanation.top_positive_drivers || []).map((d, i) => (
+                  <li key={i} className="text-sm text-slate-700 font-semibold flex justify-between gap-3">
+                    <span>{d.feature}</span>
+                    <span className="text-emerald-700 tabular-nums">+{Number(d.shap_value).toFixed(3)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {explanation.model_global_importance?.length > 0 && (
+            <div className="rounded-2xl border border-slate-100 bg-white p-5">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Global feature importance (trained tree)</div>
+              <div className="space-y-3">
+                {explanation.model_global_importance.slice(0, 6).map((row, idx) => (
+                  <div key={row.feature || idx} className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold text-slate-600">
+                      <span>{row.feature}</span>
+                      <span className="tabular-nums">{(row.importance * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-400"
+                        style={{ width: `${Math.min(100, row.importance * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </motion.section>
+      )}
 
       <div 
         style={{
@@ -94,7 +164,7 @@ const Roadmap = ({ prediction }) => {
               <AlertCircle size={18} /> Academic Insights
             </div>
             <ul className="space-y-4">
-              {plan.advice.map((item, i) => (
+              {(plan.advice || []).map((item, i) => (
                 <motion.li
                   key={i}
                   initial={{ opacity: 0, x: -10 }}
@@ -169,7 +239,7 @@ const Roadmap = ({ prediction }) => {
                       <h4 className="text-lg md:text-xl font-black text-slate-800 tracking-tight">{level} Integration</h4>
                     </div>
                   </div>
-                  <p className="text-slate-600 text-sm leading-relaxed font-semibold ml-[3.25rem] md:ml-[3.9rem]">{plan[level.toLowerCase()]}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed font-semibold ml-[3.25rem] md:ml-[3.9rem]">{plan[level.toLowerCase()] || "Module details not available in this version."}</p>
                 </motion.div>
               );
               })}
@@ -186,7 +256,7 @@ const Roadmap = ({ prediction }) => {
                   <div className="p-2 bg-emerald-500 rounded-xl"><Award size={16} className="text-white" /></div>
                   Milestone Projects
                 </div>
-                <p className="text-sm text-slate-700 leading-relaxed font-semibold">{plan.projects}</p>
+                <p className="text-sm text-slate-700 leading-relaxed font-semibold">{plan.projects || "Project details not available."}</p>
               </motion.div>
 
               <motion.div
@@ -199,7 +269,7 @@ const Roadmap = ({ prediction }) => {
                   <div className="p-2 bg-indigo-600 rounded-xl"><Rocket size={16} className="text-white" /></div>
                   Professional Stack
                 </div>
-                <p className="text-sm text-slate-700 leading-relaxed font-semibold">{plan.tools}</p>
+                <p className="text-sm text-slate-700 leading-relaxed font-semibold">{plan.tools || "Tool details not available."}</p>
               </motion.div>
 
               <div className="rounded-[2rem] border border-slate-100 bg-white/90 p-5 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.35)]">
