@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000/api";
+export { API_BASE_URL };
 const TOKEN_KEY = "career_tutor_token";
 const AUTH_USER_KEY = "career_tutor_auth_user";
 
@@ -47,13 +48,30 @@ export const registerUser = async ({ email, password, full_name }) => {
     password,
     full_name,
   });
-  setAuthSession(response.data.access_token, response.data.user);
+  // Do not set session yet since they are not verified
   return response.data;
 };
 
 export const loginUser = async ({ email, password }) => {
   const response = await api.post("/auth/login", { email, password });
   setAuthSession(response.data.access_token, response.data.user);
+  return response.data;
+};
+
+export const googleLogin = async (token) => {
+  const response = await api.post("/auth/google-login", { token });
+  setAuthSession(response.data.access_token, response.data.user);
+  return response.data;
+};
+
+export const verifyEmail = async ({ email, code }) => {
+  const response = await api.post("/auth/verify-email", { email, code });
+  setAuthSession(response.data.access_token, response.data.user);
+  return response.data;
+};
+
+export const resendVerification = async ({ email }) => {
+  const response = await api.post("/auth/resend-verification", { email });
   return response.data;
 };
 
@@ -69,6 +87,12 @@ export const predictCareer = async (studentData) => {
 
 export const sendMessage = async (prompt, history, context) => {
   const response = await api.post("/chat/", { prompt, history, context });
+  return response.data;
+};
+
+/** Multi-step tool agent (Groq tool calling + RAG + catalog tools). Non-streaming. */
+export const sendAgentMessage = async (prompt, history, context) => {
+  const response = await api.post("/chat/agent", { prompt, history, context });
   return response.data;
 };
 
@@ -101,18 +125,38 @@ export const streamMessage = async (prompt, history, context, onChunk) => {
   }
 };
 
-export const getLesson = async (topic, week) => {
+export const getLesson = async (skill, week) => {
   const response = await api.get(
-    `/learning/lesson?career=${encodeURIComponent(topic)}&week=${week}`,
+    `/learning/lesson?skill=${skill}&week=${week}`,
   );
   return response.data;
 };
 
-export const getQuiz = async (topic, week) => {
-  const response = await api.get(
-    `/learning/quiz?career=${encodeURIComponent(topic)}&week=${week}`,
-  );
+export const getQuiz = async (skill) => {
+  const response = await api.get(`/learning/quiz?skill=${skill}`);
   return response.data;
+};
+
+/** Transcribe audio file to text using the backend speech-to-text service */
+export const transcribeAudio = async (audioBlob) => {
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio.webm");
+
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/stt/transcribe`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Transcription failed");
+  }
+
+  return response.json();
 };
 
 export default api;

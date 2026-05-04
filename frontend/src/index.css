@@ -1,19 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --font-primary: 'Outfit', sans-serif;
   --primary: #2563eb;
-  --primary-glow: rgba(37, 99, 235, 0.2);
+  --primary-glow: rgba(37, 99, 235, 0.25);
   --secondary: #d97706; /* Academic Gold */
   --accent: #059669; /* Scholar Emerald */
-  --bg-deep: #cbdcf7; /* Distinct Academic Tint */
+  --bg-deep: #eff6ff; /* Lighter, cleaner background */
   --bg-surface: #ffffff;
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --border-light: rgba(37, 99, 235, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.9);
+  --border-light: rgba(37, 99, 235, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.85);
   --transition-fast: 0.15s ease;
-  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 
@@ -27,18 +31,41 @@
 body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(5, 150, 105, 0.1), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #eff6ff 45%, #f8fafc 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
+  scrollbar-gutter: stable;
 }
 
 /* Glassmorphism Card */
 .glass-card {
   background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--border-light);
+}
+
+/* Premium Glass Panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 40px -10px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.premium-gradient-text {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
 }
 
 /* Premium Buttons */

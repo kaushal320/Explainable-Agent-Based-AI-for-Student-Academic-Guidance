@@ -1,0 +1,22 @@
+[
+  {
+    "query": "What should a software engineering student focus on in the first semester?",
+    "notes": "Expect retrieval from career or syllabus chunks if seeded."
+  },
+  {
+    "query": "Career path data science beginner intermediate projects",
+    "notes": "Matches career_content-style rows when CSV is embedded."
+  },
+  {
+    "query": "Explain SQL joins for academic databases course",
+    "notes": "May abstain if no SQL syllabus uploaded; still a valid RAG stress test."
+  },
+  {
+    "query": "Tools and technologies for full stack developer roadmap",
+    "notes": "Lexical overlap with tools/projects fields in catalog."
+  },
+  {
+    "query": "How to improve GPA study habits for IT students",
+    "notes": "General query; may hit knowledge_gap depending on corpus."
+  }
+]

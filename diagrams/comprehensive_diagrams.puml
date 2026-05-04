@@ -1,0 +1,1195 @@
+/' 
+   EXPLAINABLE AGENT-BASED AI FOR STUDENT ACADEMIC GUIDANCE - COMPREHENSIVE
+   ALL DIAGRAMS WITH EXPANDED COVERAGE
+   Total: 25+ Diagrams covering all aspects of the project
+'/
+
+/' ========== 1. ENTITY RELATIONSHIP DIAGRAM ========== '/
+
+@startuml ERD_Database_Complete
+title ERD - Complete Database Schema
+
+entity User {
+  *_id : ObjectId
+  --
+  *email : String
+  *password_hash : String
+  full_name : String
+  user_type : Enum
+  status : Enum
+  created_at : DateTime
+  updated_at : DateTime
+}
+
+entity StudentProfile {
+  *_id : ObjectId
+  *user_id : ObjectId FK
+  --
+  gpa : Float
+  python_exp : String
+  sql_exp : String
+  java_exp : String
+  domain : String
+  onboarding_complete : Boolean
+}
+
+entity CareerPrediction {
+  *_id : ObjectId
+  *user_id : ObjectId FK
+  --
+  predicted_career : String
+  confidence_score : Float
+  explanation : String
+  created_at : DateTime
+  is_active : Boolean
+}
+
+entity LearningPlan {
+  *_id : ObjectId
+  *prediction_id : ObjectId FK
+  --
+  beginner_path : String
+  intermediate_path : String
+  advanced_path : String
+  projects : Array
+  tools : Array
+  duration_weeks : Integer
+}
+
+entity ChatSession {
+  *_id : ObjectId
+  *user_id : ObjectId FK
+  *prediction_id : ObjectId FK
+  --
+  session_start : DateTime
+  session_end : DateTime
+  total_messages : Integer
+  status : Enum
+}
+
+entity ChatMessage {
+  *_id : ObjectId
+  *session_id : ObjectId FK
+  --
+  role : Enum
+  content : String
+  timestamp : DateTime
+  token_count : Integer
+}
+
+entity LearningProgress {
+  *_id : ObjectId
+  *user_id : ObjectId FK
+  *prediction_id : ObjectId FK
+  --
+  skill_name : String
+  week_number : Integer
+  lesson_completed : Boolean
+  quiz_score : Float
+  last_updated : DateTime
+}
+
+entity KnowledgeDocument {
+  *_id : ObjectId
+  *user_id : ObjectId FK
+  --
+  document_type : Enum
+  source : String
+  chunks : Integer
+  metadata : JSON
+  indexed_at : DateTime
+}
+
+entity DocumentChunk {
+  *_id : ObjectId
+  *doc_id : ObjectId FK
+  --
+  chunk_text : String
+  embedding : Vector
+  position : Integer
+}
+
+entity Feedback {
+  *_id : ObjectId
+  --
+  user_email : String
+  rating : Integer
+  comment : String
+  created_at : DateTime
+}
+
+entity LessonContent {
+  *_id : ObjectId
+  --
+  career_name : String
+  skill_name : String
+  week_number : Integer
+  title : String
+  content : String
+  resources : Array
+  difficulty : Enum
+}
+
+entity Quiz {
+  *_id : ObjectId
+  --
+  skill_name : String
+  questions : Array
+  difficulty : Enum
+  passing_score : Integer
+}
+
+User ||--o{ StudentProfile : "has"
+User ||--o{ CareerPrediction : "creates"
+User ||--o{ ChatSession : "initiates"
+User ||--o{ LearningProgress : "tracks"
+User ||--o{ KnowledgeDocument : "uploads"
+CareerPrediction ||--|| LearningPlan : "generates"
+CareerPrediction ||--o{ ChatSession : "associates"
+CareerPrediction ||--o{ LearningProgress : "defines"
+ChatSession ||--o{ ChatMessage : "contains"
+KnowledgeDocument ||--o{ DocumentChunk : "chunks"
+LessonContent ||--o{ LearningProgress : "teaches"
+
+@enduml
+
+
+/' ========== 2. USE CASE DIAGRAM - FIXED ========== '/
+
+@startuml UseCase_Complete
+title Use Case Diagram - Complete System Features
+
+left to right direction
+
+actor Student
+actor Admin
+actor AIEngine as "Groq AI"
+actor DB as "MongoDB"
+
+rectangle System {
+  usecase UC1 as "Register"
+  usecase UC2 as "Login"
+  usecase UC3 as "Complete Onboarding"
+  usecase UC4 as "Input Academic Data"
+  usecase UC5 as "Request Prediction"
+  usecase UC6 as "View Prediction"
+  usecase UC7 as "View Explanation"
+  usecase UC8 as "Chat with Tutor"
+  usecase UC9 as "Stream Chat Response"
+  usecase UC10 as "Access Learning Hub"
+  usecase UC11 as "View Learning Path"
+  usecase UC12 as "Complete Lesson"
+  usecase UC13 as "Take Quiz"
+  usecase UC14 as "View Progress"
+  usecase UC15 as "Upload Documents"
+  usecase UC16 as "Search Knowledge"
+  usecase UC17 as "Submit Feedback"
+  usecase UC18 as "View Roadmap"
+  usecase UC19 as "Download Report"
+  usecase UC20 as "Manage Users"
+  usecase UC21 as "Configure APIs"
+  usecase UC22 as "Monitor System"
+}
+
+Student --> UC1
+Student --> UC2
+Student --> UC3
+Student --> UC4
+Student --> UC5
+Student --> UC6
+Student --> UC7
+Student --> UC8
+Student --> UC10
+Student --> UC11
+Student --> UC12
+Student --> UC13
+Student --> UC14
+Student --> UC15
+Student --> UC16
+Student --> UC17
+Student --> UC18
+Student --> UC19
+
+Admin --> UC20
+Admin --> UC21
+Admin --> UC22
+
+UC5 ..> UC6 : include
+UC6 ..> UC7 : include
+UC8 ..> UC9 : include
+UC10 ..> UC11 : include
+UC12 ..> UC13 : include
+
+UC3 .> UC4 : precedes
+UC4 .> UC5 : precedes
+
+@enduml
+
+
+/' ========== 3. DATA FLOW DIAGRAM LEVEL 0 ========== '/
+
+@startuml DFD0_Context
+title DFD Level 0 - System Context
+
+entity "Student User" as SU
+entity "Administrator" as ADM
+entity "Groq API" as GROQ
+entity "MongoDB" as MONGO
+entity "Email Service" as EMAIL
+
+database "Scholar Hub System" as SYSTEM
+
+SU --> SYSTEM : Student Data\nQueries
+SYSTEM --> SU : Predictions\nExplanations\nResponses
+
+ADM --> SYSTEM : Configuration\nManagement
+SYSTEM --> ADM : Reports\nMonitoring
+
+SYSTEM --> GROQ : LLM Requests
+GROQ --> SYSTEM : AI Responses
+
+SYSTEM --> MONGO : Read/Write
+MONGO --> SYSTEM : Data
+
+SYSTEM --> EMAIL : Notifications
+EMAIL --> SYSTEM : Status
+
+@enduml
+
+
+/' ========== 4. DFD LEVEL 1 - MAIN PROCESSES ========== '/
+
+@startuml DFD1_Processes
+title DFD Level 1 - Main Processes
+
+entity "Student" as ST
+entity "Admin" as AD
+entity "Groq" as GQ
+entity "MongoDB" as DB
+
+process P1 as "1. Authentication"
+process P2 as "2. Onboarding"
+process P3 as "3. Prediction"
+process P4 as "4. Chat Service"
+process P5 as "5. Learning Hub"
+process P6 as "6. Knowledge RAG"
+process P7 as "7. Analytics"
+
+datastore DS1 as "Users"
+datastore DS2 as "Profiles"
+datastore DS3 as "Predictions"
+datastore DS4 as "Messages"
+datastore DS5 as "Progress"
+datastore DS6 as "Knowledge"
+datastore DS7 as "Feedback"
+
+ST --> P1 : Credentials
+P1 --> DS1 : Verify
+DS1 --> P1 : User Data
+
+ST --> P2 : Profile
+P2 --> DS2 : Store
+DS2 --> P2 : Confirmation
+
+ST --> P3 : Features
+P3 --> GQ : LLM Request
+GQ --> P3 : Explanation
+P3 --> DS3 : Store
+
+ST --> P4 : Message
+P4 --> GQ : Chat Query
+GQ --> P4 : Response
+P4 --> DS4 : Store
+
+ST --> P5 : Request
+P5 --> DS3 : Get Path
+P5 --> DS5 : Track
+
+ST --> P6 : Query
+P6 --> DS6 : Search
+
+ST --> P7 : Feedback
+P7 --> DS7 : Store
+
+AD --> P3 : Config
+AD --> P4 : Prompts
+
+@enduml
+
+
+/' ========== 5. SYSTEM ARCHITECTURE DIAGRAM ========== '/
+
+@startuml Architecture_Full
+title System Architecture - Complete Stack
+
+package "Client" {
+  component "React Frontend" as FE
+  component "Components" as COMP
+  component "State Management" as STATE
+}
+
+package "API Layer" {
+  component "FastAPI Server" as API
+  component "Auth Middleware" as AUTH
+  component "Request Validation" as VAL
+}
+
+package "Services" {
+  component "Auth Service" as AS
+  component "Prediction Service" as PS
+  component "Chat Service" as CS
+  component "Learning Service" as LS
+  component "RAG Service" as RS
+}
+
+package "AI/ML" {
+  component "Groq Client" as GC
+  component "ML Models" as MM
+  component "Embeddings" as EMB
+}
+
+package "Data" {
+  database "MongoDB" as MDB
+  database "Vector Store" as VS
+  storage "File Storage" as FS
+}
+
+FE --> COMP
+COMP --> STATE
+STATE --> API
+
+API --> AUTH
+API --> VAL
+API --> AS
+API --> PS
+API --> CS
+API --> LS
+API --> RS
+
+PS --> MM
+CS --> GC
+RS --> EMB
+RS --> VS
+
+AS --> MDB
+PS --> MDB
+CS --> MDB
+LS --> MDB
+
+@enduml
+
+
+/' ========== 6. PREDICTION ENGINE DETAILED FLOW ========== '/
+
+@startuml PredictionFlow
+title Career Prediction Engine - Detailed Flow
+
+participant Student as S
+participant UI as "React UI"
+participant FastAPI as "API"
+participant PredService as "Prediction Service"
+participant MLModel as "ML Models"
+participant Groq as "Groq LLM"
+participant MongoDB as "DB"
+
+S -> UI: Submit Data\n(GPA, Skills, Domain)
+UI -> FastAPI: POST /predict
+FastAPI -> PredService: predict_career()
+
+PredService -> PredService: Transform Features
+PredService -> MLModel: Load Model
+MLModel -> PredService: Model Ready
+
+PredService -> MLModel: Predict
+MLModel -> PredService: Career Class
+
+PredService -> Groq: Generate Explanation\n"Why this career?"
+Groq -> PredService: Explanation Text
+
+PredService -> MongoDB: Get Career Content
+MongoDB -> PredService: Learning Path
+
+PredService -> PredService: Build Plan
+PredService -> FastAPI: Return Response
+
+FastAPI -> UI: Career + Explanation\n+ Plan
+UI -> S: Display Results
+
+@enduml
+
+
+/' ========== 7. CHAT/TUTORING FLOW ========== '/
+
+@startuml ChatFlow
+title Chat Service - Real-time Streaming
+
+participant Student as S
+participant UI as "React"
+participant FastAPI as "API"
+participant ChatService as "Chat Service"
+participant RAG as "RAG Engine"
+participant VectorDB as "Vector Store"
+participant Groq as "Groq LLM"
+
+S -> UI: Type Message
+UI -> FastAPI: POST /chat/stream
+FastAPI -> ChatService: Stream Request
+
+ChatService -> RAG: Search Query
+RAG -> VectorDB: Find Similar Docs
+VectorDB -> RAG: Top-K Results
+RAG -> ChatService: Relevant Chunks
+
+ChatService -> ChatService: Build Prompt\n(with context + docs)
+ChatService -> Groq: Stream Request
+Groq -> Groq: Token Generation
+
+Groq --> ChatService: Chunk 1
+Groq --> ChatService: Chunk 2
+Groq --> ChatService: Chunk 3
+Groq --> ChatService: [EOS]
+
+ChatService --> UI: SSE Stream
+UI --> UI: Render Real-time
+UI --> S: Display Response
+
+@enduml
+
+
+/' ========== 8. AUTHENTICATION SEQUENCE ========== '/
+
+@startuml AuthFlow
+title Authentication & Authorization Flow
+
+participant User as U
+participant UI as "React"
+participant Router as "FastAPI Router"
+participant AuthService as "Auth Service"
+participant JWT as "JWT Handler"
+participant MongoDB as "DB"
+
+U -> UI: Enter Credentials
+UI -> Router: POST /register or /login
+
+alt Register Path
+  Router -> AuthService: register(UserCreate)
+  AuthService -> AuthService: Hash Password
+  AuthService -> MongoDB: Create User
+  MongoDB -> AuthService: User Created
+  AuthService -> JWT: Generate Token
+  JWT -> AuthService: JWT Token
+  AuthService -> Router: AuthResponse
+  Router -> UI: Token + User
+  UI -> UI: localStorage.setItem
+else Login Path
+  Router -> AuthService: login(UserLogin)
+  AuthService -> MongoDB: Find User
+  MongoDB -> AuthService: User Data
+  AuthService -> AuthService: Verify Password
+  AuthService -> JWT: Generate Token
+  JWT -> AuthService: JWT Token
+  AuthService -> Router: AuthResponse
+  Router -> UI: Token + User
+  UI -> UI: localStorage.setItem
+end
+
+U -> UI: Access Protected Resource
+UI -> UI: Get Token
+UI -> Router: Request + Bearer Token
+Router -> JWT: Decode Token
+JWT -> Router: Decoded Payload
+Router -> MongoDB: Get User
+MongoDB -> Router: User Data
+Router -> UI: Return Data
+
+@enduml
+
+
+/' ========== 9. LEARNING HUB FLOW ========== '/
+
+@startuml LearningFlow
+title Learning Hub - Lesson & Progress Flow
+
+participant Student as S
+participant UI as "React"
+participant FastAPI as "API"
+participant LearningService as "Learning Service"
+participant ContentDB as "Content DB"
+participant ProgressDB as "Progress DB"
+
+S -> UI: Access Learning Hub
+UI -> FastAPI: GET /learning/path
+FastAPI -> LearningService: Get Path
+
+LearningService -> ProgressDB: Get Career
+ProgressDB -> LearningService: Path
+
+LearningService -> ContentDB: Get Skills
+ContentDB -> LearningService: Skills
+
+LearningService -> FastAPI: Return Path
+FastAPI -> UI: Learning Path
+UI -> S: Display Path
+
+S -> UI: Select Skill/Week
+UI -> FastAPI: GET /learning/lesson
+FastAPI -> LearningService: Get Lesson
+
+LearningService -> ContentDB: Fetch
+ContentDB -> LearningService: Content
+
+LearningService -> FastAPI: Lesson Data
+FastAPI -> UI: Display Lesson
+UI -> S: Show Content
+
+S -> UI: Complete & Submit
+UI -> FastAPI: POST /learning/progress
+FastAPI -> LearningService: Update
+
+LearningService -> ProgressDB: Save Progress
+ProgressDB -> LearningService: Confirmed
+
+LearningService -> FastAPI: Response
+FastAPI -> UI: Success
+UI -> S: Show Progress Update
+
+@enduml
+
+
+/' ========== 10. DATABASE TRANSACTION FLOW ========== '/
+
+@startuml DatabaseFlow
+title Database Operations - Transaction Flow
+
+participant Service as "Backend Service"
+participant MongoDB as "MongoDB"
+participant Session as "Transaction"
+
+Service -> Session: Begin Transaction
+Session -> MongoDB: Connect
+
+Service -> MongoDB: Read User Data
+MongoDB -> Service: User Object
+
+Service -> MongoDB: Read Profile
+MongoDB -> Service: Profile Object
+
+Service -> MongoDB: Create/Update Prediction
+MongoDB -> Session: Write Operation
+
+Service -> MongoDB: Write Chat Message
+MongoDB -> Session: Write Operation
+
+Service -> MongoDB: Update Progress
+MongoDB -> Session: Write Operation
+
+Service -> Session: Commit
+Session -> MongoDB: Persist All
+MongoDB -> Service: Transaction Complete
+
+Service -> Service: Cache Results
+Service -> Client: Return Response
+
+@enduml
+
+
+/' ========== 11. API ENDPOINTS MAPPING ========== '/
+
+@startuml APIEndpoints
+title API Endpoints - Complete Mapping
+
+component "Authentication" as Auth {
+  usecase "POST /auth/register" as EP1
+  usecase "POST /auth/login" as EP2
+  usecase "GET /auth/me" as EP3
+}
+
+component "Prediction" as Pred {
+  usecase "POST /predict" as EP4
+  usecase "GET /predictions" as EP5
+}
+
+component "Chat" as Chat {
+  usecase "POST /chat" as EP6
+  usecase "POST /chat/stream" as EP7
+  usecase "GET /chat/history" as EP8
+}
+
+component "Learning" as Learn {
+  usecase "GET /learning/lesson" as EP9
+  usecase "GET /learning/quiz" as EP10
+  usecase "POST /learning/progress" as EP11
+}
+
+component "Knowledge" as Know {
+  usecase "POST /knowledge/upload/text" as EP12
+  usecase "POST /knowledge/upload/file" as EP13
+  usecase "GET /knowledge/search" as EP14
+}
+
+component "Feedback" as FB {
+  usecase "POST /feedback" as EP15
+  usecase "GET /feedback/all" as EP16
+}
+
+@enduml
+
+
+/' ========== 12. COMPONENT INTERACTION DIAGRAM ========== '/
+
+@startuml ComponentInteraction
+title Component Interaction - Frontend & Backend
+
+package Frontend {
+  component LoginComp
+  component OnboardingComp
+  component DashboardComp
+  component ChatComp
+  component LearningComp
+  component FeedbackComp
+}
+
+package BackendServices {
+  component AuthRouter
+  component PredRouter
+  component ChatRouter
+  component LearningRouter
+  component FeedbackRouter
+}
+
+package DataPersistence {
+  database UserDB
+  database PredictionDB
+  database ChatDB
+  database ProgressDB
+}
+
+LoginComp --> AuthRouter
+OnboardingComp --> PredRouter
+DashboardComp --> PredRouter
+ChatComp --> ChatRouter
+LearningComp --> LearningRouter
+FeedbackComp --> FeedbackRouter
+
+AuthRouter --> UserDB
+PredRouter --> PredictionDB
+ChatRouter --> ChatDB
+LearningRouter --> ProgressDB
+
+@enduml
+
+
+/' ========== 13. STATE MACHINE - USER JOURNEY ========== '/
+
+@startuml UserStateMachine
+title User Journey - State Transitions
+
+[*] --> Unauthenticated
+
+state Unauthenticated {
+  [*] --> ViewHome
+  ViewHome --> ViewLearning: Browse
+  ViewLearning --> ViewFeedback: Browse
+}
+
+Unauthenticated --> Authentication: Click Login
+
+state Authentication {
+  [*] --> AuthChoice
+  AuthChoice --> Register: Choose Register
+  AuthChoice --> SignIn: Choose Login
+  Register --> CreateAccount: Submit
+  SignIn --> VerifyAccount: Submit
+  CreateAccount --> AuthSuccess: Success
+  VerifyAccount --> AuthSuccess: Success
+}
+
+Authentication --> Authenticated: Token Generated
+
+state Authenticated {
+  [*] --> OnboardingCheck
+  OnboardingCheck --> Onboarding: First Time
+  OnboardingCheck --> Dashboard: Returning
+  
+  state Onboarding {
+    [*] --> FillProfile
+    FillProfile --> SubmitProfile: Submit
+    SubmitProfile --> [*]
+  }
+  
+  state Dashboard {
+    [*] --> MainView
+    MainView --> ViewPrediction: Click
+    ViewPrediction --> ChatOption: Read
+    ChatOption --> TutoringChat: Engage
+    TutoringChat --> LearningAccess: Continue
+    LearningAccess --> ProgressView: Check
+  }
+}
+
+Authenticated --> Unauthenticated: Logout
+
+@enduml
+
+
+/' ========== 14. DEPLOYMENT ARCHITECTURE ========== '/
+
+@startuml Deployment
+title Deployment & Infrastructure Architecture
+
+node Browser {
+  component "React App"
+}
+
+node LoadBalancer {
+  component "Nginx"
+}
+
+node Backend1 {
+  component "FastAPI Server 1"
+}
+
+node Backend2 {
+  component "FastAPI Server 2"
+}
+
+node Services {
+  component "Groq Client"
+  component "ML Models"
+}
+
+cloud CloudServices {
+  component "Groq Cloud LLM"
+  component "Email Service"
+}
+
+database MongoDB {
+  component "Primary"
+  component "Secondary"
+  component "Tertiary"
+}
+
+database VectorDB {
+  component "Pinecone"
+}
+
+Browser --> LoadBalancer
+LoadBalancer --> Backend1
+LoadBalancer --> Backend2
+
+Backend1 --> Services
+Backend2 --> Services
+
+Services --> CloudServices
+
+Backend1 --> MongoDB
+Backend2 --> MongoDB
+
+Services --> VectorDB
+
+@enduml
+
+
+/' ========== 15. SKILL DEVELOPMENT MATRIX ========== '/
+
+@startuml SkillMatrix
+title Skill Development - Learning Path Matrix
+
+rectangle Python {
+  usecase "Basics" as PB
+  usecase "Intermediate" as PM
+  usecase "Advanced" as PA
+}
+
+rectangle SQL {
+  usecase "Basics" as SB
+  usecase "Intermediate" as SM
+  usecase "Advanced" as SA
+}
+
+rectangle Java {
+  usecase "Basics" as JB
+  usecase "Intermediate" as JM
+  usecase "Advanced" as JA
+}
+
+rectangle SpecializedSkills {
+  usecase "ML/AI" as ML
+  usecase "Cloud" as CL
+  usecase "DevOps" as DV
+}
+
+PB --> PM
+PM --> PA
+
+SB --> SM
+SM --> SA
+
+JB --> JM
+JM --> JA
+
+PA --> ML
+SA --> ML
+
+ML --> CL
+CL --> DV
+
+@enduml
+
+
+/' ========== 16. FEATURE MATRIX ========== '/
+
+@startuml FeatureMatrix
+title Features Matrix - Coverage
+
+rectangle "Core Features" {
+  usecase "Authentication"
+  usecase "Onboarding"
+  usecase "Career Prediction"
+}
+
+rectangle "Interactive Features" {
+  usecase "AI Chat"
+  usecase "Real-time Streaming"
+  usecase "Message History"
+}
+
+rectangle "Learning Features" {
+  usecase "Lesson Delivery"
+  usecase "Quiz System"
+  usecase "Progress Tracking"
+}
+
+rectangle "Knowledge Features" {
+  usecase "Document Upload"
+  usecase "RAG Search"
+  usecase "Knowledge Base"
+}
+
+rectangle "Admin Features" {
+  usecase "User Management"
+  usecase "System Config"
+  usecase "Analytics"
+}
+
+@enduml
+
+
+/' ========== 17. ERROR HANDLING FLOW ========== '/
+
+@startuml ErrorHandling
+title Error Handling & Recovery Flow
+
+actor User as U
+participant System as S
+participant ErrorHandler as E
+participant Logger as L
+participant Database as D
+
+U -> S: Request
+alt Success Path
+  S -> D: Operation
+  D -> S: Success
+  S -> U: Response
+else Error Path
+  S -> E: Catch Exception
+  E -> L: Log Error
+  L -> L: Record Details
+  E -> E: Determine Type
+  
+  alt Validation Error
+    E -> U: 400 Bad Request
+  else Not Found
+    E -> U: 404 Not Found
+  else Server Error
+    E -> U: 500 Server Error
+  else Auth Error
+    E -> U: 401 Unauthorized
+  end
+end
+
+@enduml
+
+
+/' ========== 18. CACHING STRATEGY ========== '/
+
+@startuml Caching
+title Caching Strategy - Performance Optimization
+
+actor Client as C
+participant API as A
+participant Cache as CA
+database Database as DB
+
+C -> A: Request
+A -> CA: Check Cache
+
+alt Cache Hit
+  CA -> A: Return Cached Data
+  A -> C: Response (Fast)
+else Cache Miss
+  A -> DB: Query
+  DB -> A: Data
+  A -> CA: Store in Cache
+  A -> C: Response
+end
+
+note right of CA
+  Cache Invalidation:
+  - TTL: 1 hour
+  - Events: User update
+  - Manual: Admin clear
+end note
+
+@enduml
+
+
+/' ========== 19. MESSAGE QUEUE FLOW ========== '/
+
+@startuml MessageQueue
+title Message Queue - Async Operations
+
+participant Service as S
+participant Queue as Q
+participant Worker as W
+participant Database as D
+
+S -> Q: Enqueue Task
+Q -> Q: Store Message
+S -> S: Return Immediately
+
+activate W
+Q -> W: Dequeue
+W -> D: Process
+D -> W: Confirm
+W -> Q: Remove Message
+deactivate W
+
+@enduml
+
+
+/' ========== 20. LOAD TESTING SCENARIOS ========== '/
+
+@startuml LoadTesting
+title Load Testing - Scenario Matrix
+
+rectangle "Light Load" {
+  usecase "10 Users" as L1
+  usecase "1 Request/sec" as L2
+}
+
+rectangle "Medium Load" {
+  usecase "100 Users" as M1
+  usecase "10 Requests/sec" as M2
+}
+
+rectangle "Heavy Load" {
+  usecase "1000 Users" as H1
+  usecase "100 Requests/sec" as H2
+}
+
+rectangle "Stress Test" {
+  usecase "Gradual Increase" as S1
+  usecase "Spike Test" as S2
+}
+
+@enduml
+
+
+/' ========== 21. MONITORING DASHBOARD ========== '/
+
+@startuml Monitoring
+title System Monitoring - Metrics & KPIs
+
+rectangle "Performance" {
+  usecase "API Response Time"
+  usecase "Database Queries"
+  usecase "Cache Hit Rate"
+}
+
+rectangle "User Metrics" {
+  usecase "Active Users"
+  usecase "Prediction Accuracy"
+  usecase "Chat Engagement"
+}
+
+rectangle "System Health" {
+  usecase "Error Rate"
+  usecase "Uptime"
+  usecase "Resource Usage"
+}
+
+rectangle "Business" {
+  usecase "User Retention"
+  usecase "Feature Usage"
+  usecase "Feedback Score"
+}
+
+@enduml
+
+
+/' ========== 22. MOBILE RESPONSIVENESS FLOW ========== '/
+
+@startuml MobileFlow
+title Mobile & Responsive Design Flow
+
+rectangle "Desktop" {
+  usecase "3-Column Layout"
+  usecase "Full Dashboard"
+}
+
+rectangle "Tablet" {
+  usecase "2-Column Layout"
+  usecase "Optimized Width"
+}
+
+rectangle "Mobile" {
+  usecase "1-Column Stack"
+  usecase "Touch Optimized"
+  usecase "Bottom Nav"
+}
+
+@enduml
+
+
+/' ========== 23. SECURITY FLOW ========== '/
+
+@startuml Security
+title Security - Authentication & Authorization
+
+actor User as U
+participant API as A
+participant AuthMiddleware as AM
+participant JWT as J
+participant RoleCheck as RC
+
+U -> A: Request with Token
+
+A -> AM: Extract Token
+AM -> J: Decode & Verify
+J -> AM: Token Valid?
+
+alt Valid
+  AM -> RC: Check Permissions
+  RC -> RC: User Role
+  
+  alt Authorized
+    RC -> A: Proceed
+    A -> A: Process
+    A -> U: Success Response
+  else Not Authorized
+    RC -> A: Forbidden
+    A -> U: 403 Forbidden
+  end
+else Invalid
+  AM -> U: 401 Unauthorized
+end
+
+@enduml
+
+
+/' ========== 24. TESTING STRATEGY ========== '/
+
+@startuml Testing
+title Testing Strategy - Coverage & Types
+
+rectangle "Unit Tests" {
+  usecase "Service Methods"
+  usecase "Utility Functions"
+  usecase "Models"
+}
+
+rectangle "Integration Tests" {
+  usecase "API Endpoints"
+  usecase "Database Ops"
+  usecase "External APIs"
+}
+
+rectangle "E2E Tests" {
+  usecase "User Workflows"
+  usecase "Full Prediction"
+  usecase "Chat Session"
+}
+
+rectangle "Performance Tests" {
+  usecase "Load Testing"
+  usecase "Stress Testing"
+  usecase "Spike Testing"
+}
+
+@enduml
+
+
+/' ========== 25. CI/CD PIPELINE ========== '/
+
+@startuml CICD
+title CI/CD Pipeline - Development to Production
+
+participant Developer as D
+participant GitLab as G
+participant CI as "CI Server"
+participant Tests as T
+participant Build as B
+participant Deploy as DP
+participant Prod as P
+
+D -> G: Push Code
+G -> CI: Trigger Pipeline
+
+CI -> T: Run Tests
+T -> CI: Results
+
+alt Tests Pass
+  CI -> B: Build
+  B -> B: Docker Image
+  B -> CI: Image Ready
+  
+  CI -> DP: Deploy to Staging
+  DP -> DP: Run Smoke Tests
+  DP -> CI: Ready for Prod
+  
+  CI -> P: Deploy to Production
+  P -> P: Update Services
+  P -> CI: Live
+else Tests Fail
+  CI -> D: Notify
+  D -> D: Fix Code
+  D -> G: Push Again
+end
+
+@enduml
+
+
+/' ========== 26. FEEDBACK LOOP SYSTEM ========== '/
+
+@startuml FeedbackLoop
+title Feedback Loop - Continuous Improvement
+
+actor User as U
+participant System as S
+database Feedback as FB
+participant Analytics as A
+participant Development as D
+
+U -> S: Use Features
+S -> S: Track Behavior
+S -> FB: Store Feedback
+
+U -> S: Submit Rating/Comment
+S -> FB: Store
+FB -> A: Analyze
+
+A -> A: Identify Patterns
+A -> A: Generate Insights
+A -> D: Recommendations
+
+D -> D: Plan Improvements
+D -> S: Implement Changes
+S -> U: New Features/Fixes
+
+U -> S: Try Improvements
+S -> S: Measure Impact
+
+@enduml
+
+/' ========== END OF ALL DIAGRAMS ========== '/

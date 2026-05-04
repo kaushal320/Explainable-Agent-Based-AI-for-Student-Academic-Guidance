@@ -1,0 +1,1352 @@
+/' 
+   EXPLAINABLE AGENT-BASED AI FOR STUDENT ACADEMIC GUIDANCE
+   COMPREHENSIVE PLANTUML DIAGRAMS
+   All diagrams in one file for easy reference
+'/
+
+/' ========================================================================================
+   1. ENTITY RELATIONSHIP DIAGRAM (ERD) - DATABASE SCHEMA
+   ======================================================================================== '/
+
+@startuml ERD_Database_Schema
+!define ENTITY_COLOR #FFE5CC
+!define ATTRIBUTE_COLOR #FFFFCC
+!define KEY_COLOR #FFD700
+
+title Entity Relationship Diagram - Database Schema
+
+entity "User" as User #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * email : String <<UNIQUE>>
+    * password_hash : String
+    full_name : String
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity "StudentProfile" as StudentProfile #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    gpa : Float
+    python_experience : String
+    sql_experience : String
+    java_experience : String
+    interested_domain : String
+    completed_onboarding : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity "CareerPrediction" as CareerPrediction #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    predicted_career : String
+    prediction_score : Float
+    skill_scores : JSON
+    learning_plan : JSON
+    prediction_date : DateTime
+    is_active : Boolean
+}
+
+entity "ChatMessage" as ChatMessage #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * prediction_id : ObjectId <<FK>>
+    role : String (user/assistant)
+    content : String
+    timestamp : DateTime
+    message_order : Integer
+}
+
+entity "LearningProgress" as LearningProgress #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * prediction_id : ObjectId <<FK>>
+    skill_name : String
+    week_number : Integer
+    lesson_completed : Boolean
+    quiz_score : Float
+    notes : String
+    last_updated : DateTime
+}
+
+entity "Feedback" as Feedback #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    user_email : String
+    rating : Integer (1-5)
+    comment : String
+    created_at : DateTime
+}
+
+entity "KnowledgeBase" as KnowledgeBase #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    content : String
+    source : String
+    embedding : Vector
+    chunk_index : Integer
+    created_at : DateTime
+}
+
+entity "LessonContent" as LessonContent #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * career_name : String
+    skill_name : String
+    week_number : Integer
+    title : String
+    content : String
+    resources : String[]
+    difficulty : String (beginner/intermediate/advanced)
+}
+
+entity "Quiz" as Quiz #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * skill_name : String
+    questions : JSON[]
+    difficulty : String
+    passing_score : Integer
+    created_at : DateTime
+}
+
+User ||--o{ StudentProfile : "has"
+User ||--o{ CareerPrediction : "creates"
+User ||--o{ ChatMessage : "sends"
+User ||--o{ LearningProgress : "tracks"
+User ||--o{ KnowledgeBase : "uploads"
+CareerPrediction ||--o{ ChatMessage : "associates"
+CareerPrediction ||--o{ LearningProgress : "defines"
+LessonContent ||--o{ LearningProgress : "references"
+Quiz ||--o{ LearningProgress : "tests"
+
+@enduml
+
+
+/' ========================================================================================
+   2. EXTENDED ENTITY RELATIONSHIP DIAGRAM (EERD) - WITH INHERITANCE & CONSTRAINTS
+   ======================================================================================== '/
+
+@startuml EERD_Extended
+!define SUPERTYPE_COLOR #E1F5FF
+!define SUBTYPE_COLOR #B3E5FC
+!define WEAK_ENTITY_COLOR #FFF9C4
+
+title Extended Entity Relationship Diagram (EERD)
+
+entity "User (Supertype)" as User <<SUPERTYPE>> #E1F5FF {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * email : String
+    * password_hash : String
+    full_name : String
+    created_at : DateTime
+    user_type : Enum(student/admin)
+    status : Enum(active/inactive)
+}
+
+entity "Student" as Student <<SUBTYPE>> #B3E5FC {
+    * student_id : ObjectId
+    --
+    major : String
+    year_of_study : Integer
+    admission_date : DateTime
+}
+
+entity "Administrator" as Admin <<SUBTYPE>> #B3E5FC {
+    * admin_id : ObjectId
+    --
+    admin_level : Integer
+    department : String
+    permissions : String[]
+}
+
+entity "StudentProfile" as StudentProfile #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    gpa : Float (0.0-4.0)
+    python_exp : Enum
+    sql_exp : Enum
+    java_exp : Enum
+    interested_domain : String
+}
+
+entity "CareerPrediction" as CareerPrediction #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    predicted_career : String (NOT NULL)
+    confidence_score : Float (0.0-1.0)
+    explanation : String
+    created_at : DateTime
+}
+
+entity "LearningPlan" as LearningPlan <<WEAK>> #FFF9C4 {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * prediction_id : ObjectId <<FK>>
+    beginner_path : String
+    intermediate_path : String
+    advanced_path : String
+    projects : String[]
+    tools : String[]
+    estimated_duration : Integer (weeks)
+}
+
+entity "ConversationSession" as ConversationSession #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * prediction_id : ObjectId <<FK>>
+    session_start : DateTime
+    session_end : DateTime
+    total_messages : Integer
+    context : JSON
+    status : Enum(active/closed)
+}
+
+entity "ChatMessage" as ChatMessage <<WEAK>> #FFF9C4 {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * session_id : ObjectId <<FK>>
+    role : Enum(user/assistant)
+    content : String
+    timestamp : DateTime
+    token_count : Integer
+}
+
+entity "KnowledgeDocument" as KnowledgeDocument #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    document_type : Enum(pdf/txt/web)
+    source : String
+    chunks : DocumentChunk[]
+    metadata : JSON
+    indexed_at : DateTime
+}
+
+entity "DocumentChunk" as DocumentChunk <<WEAK>> #FFF9C4 {
+    * chunk_id : String
+    --
+    * doc_id : ObjectId <<FK>>
+    content : String
+    embedding : Vector
+    position : Integer
+}
+
+User --|{ Student : specializes
+User --|{ Admin : specializes
+Student ||--o{ StudentProfile : "maintains"
+Student ||--o{ CareerPrediction : "receives"
+CareerPrediction ||--|| LearningPlan : "generates"
+Student ||--o{ ConversationSession : "initiates"
+ConversationSession ||--o{ ChatMessage : "contains"
+Student ||--o{ KnowledgeDocument : "uploads"
+KnowledgeDocument ||--o{ DocumentChunk : "consists_of"
+
+note right of User
+  Generalization/Specialization
+  User is supertype with Student
+  and Admin subtypes
+end note
+
+note right of LearningPlan
+  Weak Entity - depends on
+  CareerPrediction for existence
+end note
+
+@enduml
+
+
+/' ========================================================================================
+   3. USE CASE DIAGRAM - SYSTEM FUNCTIONALITY & ACTORS
+   ======================================================================================== '/
+
+@startuml UseCase_System
+title Use Case Diagram - Student Academic Guidance System
+
+left to right direction
+
+actor "Student User" as Student
+actor "System Administrator" as Admin
+actor "Groq AI Engine" as AIEngine
+actor "MongoDB Database" as Database
+actor "RAG Service" as RAGService
+
+rectangle "Scholar Hub System" {
+    usecase "Register Account" as UC1
+    usecase "Login" as UC2
+    usecase "Complete Onboarding" as UC3
+    usecase "Input Student Data" as UC4
+    usecase "Get Career Prediction" as UC5
+    usecase "View Prediction Explanation" as UC6
+    usecase "Chat with AI Tutor" as UC7
+    usecase "Receive Real-time Chat Response" as UC8
+    usecase "Access Learning Hub" as UC9
+    usecase "View Learning Plan" as UC10
+    usecase "Complete Lessons" as UC11
+    usecase "Take Quizzes" as UC12
+    usecase "Upload Knowledge Documents" as UC13
+    usecase "Search Knowledge Base" as UC14
+    usecase "Submit Feedback" as UC15
+    usecase "View Academic Roadmap" as UC16
+    usecase "Track Progress" as UC17
+    usecase "Manage User Database" as UC18
+    usecase "Configure API Keys" as UC19
+    usecase "Monitor System Health" as UC20
+    usecase "Process Career Prediction" as UC21
+    usecase "Generate AI Response" as UC22
+    usecase "Retrieve Documents" as UC23
+}
+
+Student --> UC1 : register
+Student --> UC2 : login
+Student --> UC3 : onboard
+Student --> UC4 : provide data
+Student --> UC5 : trigger prediction
+Student --> UC6 : view explanation
+Student --> UC7 : initiate chat
+Student --> UC9 : access learning
+Student --> UC10 : view plan
+Student --> UC11 : complete lessons
+Student --> UC12 : take quiz
+Student --> UC13 : upload files
+Student --> UC14 : search knowledge
+Student --> UC15 : give feedback
+Student --> UC16 : view roadmap
+Student --> UC17 : track progress
+
+UC5 ..> UC21 : <<include>>
+UC7 ..> UC22 : <<include>>
+UC13 ..> UC23 : <<include>>
+UC14 ..> UC23 : <<include>>
+
+UC21 --> AIEngine
+UC22 --> AIEngine
+UC1 --> Database
+UC2 --> Database
+UC7 --> Database
+UC13 --> RAGService
+
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+
+UC3 .-> UC4 : <<precedes>>
+UC4 .-> UC5 : <<precedes>>
+UC5 .-> UC6 : <<precedes>>
+UC6 .-> UC9 : <<precedes>>
+
+@enduml
+
+
+/' ========================================================================================
+   4. CONTEXT LEVEL DFD (Level 0) - SYSTEM AS BLACK BOX
+   ======================================================================================== '/
+
+@startuml DFD_Level0_Context
+title Data Flow Diagram - Level 0 (Context Diagram)
+
+entity "Student User" as StudentUser
+entity "System Administrator" as Admin
+entity "Groq AI API" as GroqAPI
+entity "MongoDB" as MongoDB
+entity "Email Service" as EmailService
+
+database "Scholar Hub\nAI System" as System #CCFFFF
+
+StudentUser --> System : Student Input Data\n(Scores, Interests, Queries)
+System --> StudentUser : Career Predictions\nExplanations\nChat Responses\nLearning Materials
+
+Admin --> System : System Config\nAPI Keys\nUser Management
+System --> Admin : System Reports\nMonitoring Data
+
+System --> GroqAPI : LLM Requests\n(Prediction/Chat)
+GroqAPI --> System : AI Generated Responses
+
+System --> MongoDB : Read/Write Operations\n(User Data, Progress, Messages)
+MongoDB --> System : Stored Data\nRecords
+
+System --> EmailService : Notifications\nAlerts
+EmailService --> System : Delivery Status
+
+note right of System
+  Main System Processes:
+  - User Authentication & Authorization
+  - Career Prediction Engine
+  - Conversational Tutoring Agent
+  - Learning Hub Management
+  - Knowledge Base (RAG)
+  - Progress Tracking
+end note
+
+@enduml
+
+
+/' ========================================================================================
+   5. LEVEL 1 DFD - SYSTEM PROCESSES BREAKDOWN
+   ======================================================================================== '/
+
+@startuml DFD_Level1_Processes
+title Data Flow Diagram - Level 1 (Main Processes)
+
+entity "Student User" as Student
+entity "Administrator" as Admin
+entity "Groq API" as GroqAPI
+entity "MongoDB" as DB
+database "Local ML Model" as MLModel
+database "Content Repository" as ContentRepo
+
+' Processes
+node "1.0: Authentication\n& Authorization" as P1 #FFE5CC
+node "2.0: Student Onboarding\n& Profile Management" as P2 #FFE5CC
+node "3.0: Career Prediction\nEngine" as P3 #FFE5CC
+node "4.0: AI Chat/Tutoring\nAgent" as P4 #FFE5CC
+node "5.0: Learning Hub\nOrchestration" as P5 #FFE5CC
+node "6.0: Knowledge Base\nRAG Service" as P6 #FFE5CC
+node "7.0: Feedback & Progress\nTracking" as P7 #FFE5CC
+
+' Data Stores
+database "User Store" as DS1
+database "Profile Store" as DS2
+database "Prediction Store" as DS3
+database "Chat Store" as DS4
+database "Learning Store" as DS5
+database "Knowledge Store" as DS6
+database "Feedback Store" as DS7
+
+' Flows from Student
+Student --> P1 : Login/Register\nCredentials
+P1 --> P2 : Auth Token
+P1 --> DS1 : User Data
+DS1 --> P1 : Validate User
+
+Student --> P2 : Onboarding Data\n(GPA, Skills, Domain)
+P2 --> DS2 : Profile Data
+DS2 --> P2 : Profile Records
+
+Student --> P3 : Trigger\nPrediction
+P3 --> MLModel : Student Features
+MLModel --> P3 : Prediction Output
+P3 --> GroqAPI : Generate Explanation
+GroqAPI --> P3 : Explanation Text
+P3 --> DS3 : Store Prediction
+DS3 --> P3 : Retrieve Predictions
+
+Student --> P4 : Chat Query/Context
+P4 --> DS3 : Get Prediction Context
+DS3 --> P4 : Context Data
+P4 --> ContentRepo : Retrieve Content
+ContentRepo --> P4 : Content
+P4 --> GroqAPI : Chat Request
+GroqAPI --> P4 : Streamed Response
+P4 --> DS4 : Store Message
+DS4 --> P4 : Message History
+
+Student --> P5 : Access Learning\nHub/Path
+P5 --> DS3 : Get Career Path
+P5 --> ContentRepo : Fetch Lessons/Quizzes
+ContentRepo --> P5 : Learning Materials
+P5 --> DS5 : Track Progress
+DS5 --> P5 : Progress Status
+
+Student --> P6 : Search/Upload\nDocuments
+P6 --> ContentRepo : Index Documents
+ContentRepo --> P6 : Indexed Content
+P6 --> DS6 : Store Embeddings
+DS6 --> P6 : Retrieve Chunks
+
+Student --> P7 : Submit Feedback\nView Progress
+P7 --> DS7 : Store Feedback
+P7 --> DS5 : Get Progress
+DS5 --> P7 : Progress Metrics
+P7 --> Student : Progress Report
+
+' Admin Flows
+Admin --> P1 : Config Updates
+Admin --> P3 : Model Management
+Admin --> P4 : Prompt Templates
+Admin --> P6 : Content Management
+
+@enduml
+
+
+/' ========================================================================================
+   6. LEVEL 2 DFD - CAREER PREDICTION ENGINE DETAILED
+   ======================================================================================== '/
+
+@startuml DFD_Level2_Prediction
+title Data Flow Diagram - Level 2 (Career Prediction Process)
+
+entity "Student User" as Student
+database "Student Profile" as ProfileDB
+database "ML Models\n(sklearn)" as MLModels
+database "Career Content\nDatabase" as ContentDB
+entity "Groq API" as GroqAPI
+
+node "3.1: Data Extraction\n& Transformation" as P31 #FFFFCC
+node "3.2: Feature Engineering" as P32 #FFFFCC
+node "3.3: ML Prediction" as P33 #FFFFCC
+node "3.4: Explanation Generation" as P34 #FFFFCC
+node "3.5: Learning Plan\nGeneration" as P35 #FFFFCC
+
+' Data Stores
+database "Features Store" as DS31
+database "Predictions Store" as DS32
+database "Explanations Store" as DS33
+database "Learning Plans" as DS34
+
+Student --> P31 : Raw Data\n(GPA, Skills, Domain)
+ProfileDB --> P31 : Profile Records
+P31 --> DS31 : Normalized Features
+
+DS31 --> P32 : Raw Features
+P32 --> DS31 : Engineered Features
+P32 --> P33 : Feature Vector
+
+P33 --> MLModels : Load Models\n(Encoders, Classifier)
+MLModels --> P33 : Model Predictions
+P33 --> DS32 : Prediction Output\n(Career + Score)
+
+DS32 --> P34 : Prediction
+DS31 --> P34 : Student Features
+ContentDB --> P34 : Career Requirements
+P34 --> GroqAPI : Prompt: Generate\nExplanation
+GroqAPI --> P34 : Explanation Text\n(XAI Reasoning)
+P34 --> DS33 : Store Explanation
+
+DS32 --> P35 : Career Prediction
+ContentDB --> P35 : Learning Path\nTemplate
+DS31 --> P35 : Skill Gaps Analysis
+P35 --> DS34 : Learning Plan\n(Courses, Resources)
+
+DS32 --> Student : Prediction Result
+DS33 --> Student : XAI Explanation
+DS34 --> Student : Learning Plan\n(Beginner/Intermediate/Advanced)
+
+@enduml
+
+
+/' ========================================================================================
+   7. LEVEL 2 DFD - AI CHAT/TUTORING ENGINE DETAILED
+   ======================================================================================== '/
+
+@startuml DFD_Level2_Chat
+title Data Flow Diagram - Level 2 (AI Chat/Tutoring Process)
+
+entity "Student User" as Student
+database "Chat History" as ChatDB
+database "Career Context" as ContextDB
+database "Knowledge Base\nEmbeddings" as KnowledgeDB
+entity "Groq LLM" as Groq
+entity "RAG Retriever" as RAG
+
+node "4.1: Input Validation\n& Sanitization" as P41 #FFFFCC
+node "4.2: Context Retrieval\n& Enrichment" as P42 #FFFFCC
+node "4.3: Embedding & Similarity\nSearch (RAG)" as P43 #FFFFCC
+node "4.4: Prompt Construction" as P44 #FFFFCC
+node "4.5: LLM Inference\n& Streaming" as P45 #FFFFCC
+node "4.6: Response Post-Processing\n& Storage" as P46 #FFFFCC
+
+database "Embeddings Store" as DS41
+database "Retrieved Context" as DS42
+database "Constructed Prompts" as DS43
+database "Raw Responses" as DS44
+
+Student --> P41 : Chat Message\n(Text Query)
+P41 --> Student : Validation Error\n(if invalid)
+P41 --> DS42 : Sanitized Input
+
+DS42 --> P42 : User Query
+ChatDB --> P42 : Previous Messages\n(Conversation History)
+ContextDB --> P42 : Career/Prediction\nContext
+P42 --> DS42 : Enriched Context
+
+DS42 --> P43 : Query + Context
+KnowledgeDB --> P43 : Document Embeddings
+P43 --> RAG : Similarity Search
+RAG --> P43 : Top-K Relevant\nDocuments
+P43 --> DS41 : Retrieved Chunks
+
+DS42 --> P44 : Query + Context
+DS41 --> P44 : Retrieved Knowledge
+P44 --> DS43 : Formatted Prompt\nwith System Instructions
+
+DS43 --> P45 : Complete Prompt
+P45 --> Groq : Stream Request
+Groq --> P45 : Streamed Text Chunks
+P45 --> Student : Real-time Chat\nResponse (Stream)
+P45 --> DS44 : Accumulated Response
+
+DS44 --> P46 : Complete Response Text
+ChatDB --> P46 : Session ID
+P46 --> ChatDB : Store Message\n(User & Assistant)
+P46 --> Student : Final Response
+
+@enduml
+
+
+/' ========================================================================================
+   8. SYSTEM ARCHITECTURE DIAGRAM
+   ======================================================================================== '/
+
+@startuml Architecture_System
+title System Architecture - Scholar Hub
+
+!define FRONTEND_COLOR #E3F2FD
+!define BACKEND_COLOR #F3E5F5
+!define SERVICE_COLOR #E8F5E9
+!define DATA_COLOR #FFF3E0
+
+rectangle "CLIENT LAYER" #E3F2FD {
+    component "React Frontend\n(Vite + Tailwind)" as Frontend
+    component "Components\n(Login, Chat, Dashboard,\nLearning Hub)" as Components
+    component "State Management\n(React Hooks)" as StateManagement
+    component "HTTP Client\n(Axios)" as HttpClient
+    
+    Frontend --> Components
+    Frontend --> StateManagement
+    Frontend --> HttpClient
+}
+
+rectangle "API GATEWAY & AUTH" #F3E5F5 {
+    component "FastAPI Server" as FastAPI
+    component "OAuth2/JWT\nAuthentication" as Auth
+    component "Request Validation\n(Pydantic)" as Validation
+    component "CORS & Security" as Security
+    
+    FastAPI --> Auth
+    FastAPI --> Validation
+    FastAPI --> Security
+}
+
+rectangle "BUSINESS LOGIC LAYER" #F3E5F5 {
+    component "Prediction Service\n(ML Logic)" as PredService
+    component "Chat Service\n(Conversation Agent)" as ChatService
+    component "Learning Service\n(Course Management)" as LearnService
+    component "Auth Service\n(User Management)" as AuthService
+    component "RAG Service\n(Knowledge Retrieval)" as RAGService
+}
+
+rectangle "AI/ML SERVICES" #E8F5E9 {
+    component "Groq API Client\n(LLM Inference)" as GroqClient
+    component "Local ML Models\n(Career Prediction)" as MLModels
+    component "Embedding Model\n(RAG)" as EmbeddingModel
+    component "LangChain\n(Orchestration)" as LangChain
+}
+
+rectangle "DATA LAYER" #FFF3E0 {
+    database "MongoDB\n(Users, Profiles,\nPredictions)" as Mongo
+    database "Career Content CSV\n(Lessons, Quizzes)" as ContentCSV
+    database "Vector Store\n(Document Embeddings)" as VectorStore
+    database "ML Model Files\n(Encoder, Classifier)" as ModelFiles
+}
+
+rectangle "EXTERNAL SERVICES" #E8F5E9 {
+    component "Groq Cloud\n(Remote LLM)" as GroqCloud
+    component "Email Service\n(Notifications)" as EmailService
+}
+
+HttpClient --> FastAPI
+FastAPI --> Auth
+Auth --> AuthService
+FastAPI --> PredService
+FastAPI --> ChatService
+FastAPI --> LearnService
+FastAPI --> RAGService
+
+PredService --> MLModels
+PredService --> Mongo
+ChatService --> GroqClient
+ChatService --> LangChain
+ChatService --> Mongo
+ChatService --> RAGService
+
+LearnService --> ContentCSV
+LearnService --> Mongo
+RAGService --> EmbeddingModel
+RAGService --> VectorStore
+RAGService --> Mongo
+
+AuthService --> Mongo
+GroqClient --> GroqCloud
+GroqCloud -.-> ChatService
+
+Components --> StateManagement
+StateManagement --> HttpClient
+
+@enduml
+
+
+/' ========================================================================================
+   9. COMPONENT FLOW DIAGRAM (CFD)
+   ======================================================================================== '/
+
+@startuml CFD_Component_Interaction
+title Component Flow Diagram - Data & Control Flow
+
+!define COMP_COLOR #D1C4E9
+!define DATA_COLOR #FFCCBC
+
+card "Browser" #E3F2FD {
+    component "Login Component" as LoginComp
+    component "Onboarding Component" as OnboardComp
+    component "Dashboard Component" as DashComp
+    component "Chat Component" as ChatComp
+    component "Learning Hub" as LearningComp
+    component "Feedback Component" as FeedbackComp
+}
+
+card "Frontend State" #F3E5F5 {
+    component "Auth State" as AuthState
+    component "User State" as UserState
+    component "Prediction State" as PredState
+    component "Chat State" as ChatState
+    component "Progress State" as ProgressState
+}
+
+card "FastAPI Backend" #F3E5F5 {
+    component "AuthRouter" as AuthRouter
+    component "PredictRouter" as PredRouter
+    component "ChatRouter" as ChatRouter
+    component "LearningRouter" as LearningRouter
+    component "FeedbackRouter" as FeedbackRouter
+    component "KnowledgeRouter" as KnowledgeRouter
+}
+
+card "Services" #E8F5E9 {
+    component "AuthService" as AuthSvc
+    component "PredictionService" as PredSvc
+    component "ChatService" as ChatSvc
+    component "LearningService" as LearnSvc
+    component "RAGService" as RAGSvc
+}
+
+card "External APIs & Data" #FFF3E0 {
+    component "Groq LLM" as GroqAPI
+    component "MongoDB" as MongoDB
+    component "Career Content" as CareerContent
+    component "ML Models" as MLModels
+}
+
+LoginComp --> AuthState : auth_token\nuser_data
+OnboardComp --> UserState : profile_data
+DashComp --> PredState : prediction
+ChatComp --> ChatState : messages
+LearningComp --> ProgressState : progress_data
+
+AuthState --> AuthRouter : POST /auth/login
+AuthState --> AuthRouter : POST /auth/register
+UserState --> PredRouter : POST /predict
+PredState --> DashComp : display_prediction
+ChatState --> ChatRouter : POST /chat\nPOST /chat/stream
+ChatRouter --> ChatSvc : process
+LearningComp --> LearningRouter : GET /lesson\nGET /quiz
+ProgressState --> LearningComp : render_progress
+FeedbackComp --> FeedbackRouter : POST /feedback
+
+AuthRouter --> AuthSvc
+PredRouter --> PredSvc
+ChatRouter --> ChatSvc
+LearningRouter --> LearnSvc
+FeedbackRouter --> RAGSvc
+
+AuthSvc --> MongoDB : read/write
+PredSvc --> MLModels : predict
+PredSvc --> GroqAPI : generate_explanation
+ChatSvc --> GroqAPI : get_response
+ChatSvc --> RAGSvc : retrieve_docs
+LearnSvc --> CareerContent : fetch_content
+LearnSvc --> MongoDB : track_progress
+RAGSvc --> MongoDB : store/retrieve
+
+@enduml
+
+
+/' ========================================================================================
+   10. SEQUENCE DIAGRAM - CAREER PREDICTION FLOW
+   ======================================================================================== '/
+
+@startuml Sequence_CareerPrediction
+title Sequence Diagram - Career Prediction Flow
+
+actor Student
+participant "React UI" as UI
+participant "FastAPI" as API
+participant "PredictionService" as PredService
+participant "ML Models" as MLModels
+participant "GroqAPI" as Groq
+participant "MongoDB" as DB
+
+Student -> UI: Submit Onboarding Data\n(GPA, Skills, Domain)
+UI -> API: POST /api/predict\n(StudentOnboarding)
+API -> PredService: predict_career()
+
+PredService -> PredService: Transform Features\n(exp_mapping, calculations)
+PredService -> MLModels: Load encoders\nTransform domain
+
+MLModels -> PredService: domain_encoded
+
+PredService -> MLModels: Load classifier model\nPredict career
+
+MLModels -> PredService: prediction_array\ncareer_class
+
+PredService -> PredService: Inverse transform\ncareer name
+
+PredService -> PredService: Analyze Weaknesses\n(skill_gaps)
+
+PredService -> Groq: Generate Explanation\nPrompt: Why this career?
+
+Groq -> Groq: LLM Inference\n(LLaMA model)
+
+Groq -> PredService: Explanation Text
+
+PredService -> DB: Get learning plan\ntemplate for career
+
+DB -> PredService: Career content\n(beginner, intermediate, advanced)
+
+PredService -> PredService: Build LearningPlan\nobject
+
+PredService -> API: Return PredictionResponse
+
+API -> UI: {\n  career: "Data Scientist",\n  plan: {...},\n  skills: {...}\n}
+
+UI -> UI: Update Redux State\nDisplay Prediction
+
+UI -> Student: Show Career + Explanation\nRendered Learning Plan
+
+@enduml
+
+
+/' ========================================================================================
+   11. SEQUENCE DIAGRAM - CHAT/TUTORING FLOW
+   ======================================================================================== '/
+
+@startuml Sequence_ChatTutoring
+title Sequence Diagram - Chat/Tutoring Agent Flow
+
+actor Student
+participant "React UI" as UI
+participant "FastAPI" as API
+participant "ChatService" as ChatSvc
+participant "RAGService" as RAGSvc
+participant "VectorStore" as VectorStore
+participant "Groq LLM" as Groq
+participant "MongoDB" as DB
+
+Student -> UI: Type Chat Query\n"How do I learn Python?"
+
+UI -> UI: Format ChatRequest\n(message, history, context)
+
+UI -> API: POST /api/chat/stream\n(ChatRequest)
+
+API -> ChatSvc: get_streaming_response()
+
+ChatSvc -> DB: Retrieve user context\n(prediction, progress)
+
+DB -> ChatSvc: Career + Learning context
+
+ChatSvc -> RAGSvc: retrieve_documents(query)
+
+RAGSvc -> RAGSvc: Embed query vector
+
+RAGSvc -> VectorStore: Similarity search\n(cosine similarity)
+
+VectorStore -> RAGSvc: Top-K relevant docs
+
+RAGSvc -> ChatSvc: Retrieved knowledge\nchunks + metadata
+
+ChatSvc -> ChatSvc: Build system prompt\nwith tutor personality\n+ context + retrieved_docs
+
+ChatSvc -> Groq: Streaming request\nwith complete prompt
+
+Groq -> Groq: Stream LLM tokens\n(real-time)
+
+Groq -> ChatSvc: text_chunk_1
+Groq -> ChatSvc: text_chunk_2
+Groq -> ChatSvc: text_chunk_3
+Groq -> ChatSvc: [EOS]
+
+ChatSvc -> UI: Stream chunks\n(Server-Sent Events)
+
+UI -> UI: Render text\nreal-time streaming
+
+UI -> Student: "Python is a versatile...\n(streaming in real-time)"
+
+ChatSvc -> DB: Store completed message\n(user + assistant)
+
+DB -> ChatSvc: ack
+
+@enduml
+
+
+/' ========================================================================================
+   12. AUTHENTICATION & AUTHORIZATION FLOW
+   ======================================================================================== '/
+
+@startuml Sequence_Authentication
+title Sequence Diagram - User Authentication & Authorization
+
+actor Student as S
+participant "React Frontend" as FE
+participant "FastAPI AuthRouter" as Router
+participant "AuthService" as AuthSvc
+participant "MongoDB Users" as UserDB
+participant "JWT Handler" as JWT
+
+S -> FE: Enter email + password\n+ Register/Login
+
+alt Registration Flow
+    FE -> Router: POST /auth/register\n{email, password, full_name}
+    Router -> AuthSvc: register(UserCreate)
+    
+    AuthSvc -> UserDB: Check if email exists
+    UserDB -> AuthSvc: Email exists? (error)\nOr empty (OK)
+    
+    AuthSvc -> AuthSvc: hash_password(password)\n(PBKDF2-SHA256)
+    
+    AuthSvc -> UserDB: INSERT new user\n{email, password_hash, full_name, created_at}
+    UserDB -> AuthSvc: inserted_id
+    
+    AuthSvc -> JWT: create_access_token\n{sub: email, uid: user_id}
+    JWT -> AuthSvc: access_token (JWT)
+    
+    AuthSvc -> Router: AuthResponse\n{token, user}
+    Router -> FE: {access_token, user}
+    
+    FE -> FE: localStorage.setItem\n(TOKEN_KEY, access_token)
+    FE -> S: "Registration successful!\nRedirect to onboarding"
+else Login Flow
+    FE -> Router: POST /auth/login\n{email, password}
+    Router -> AuthSvc: login(UserLogin)
+    
+    AuthSvc -> UserDB: find user by email
+    UserDB -> AuthSvc: user_document\n(or not found)
+    
+    AuthSvc -> AuthSvc: verify_password\n(plain, hashed)
+    
+    AuthSvc -> JWT: create_access_token\n{sub: email, uid: user_id}
+    JWT -> AuthSvc: access_token
+    
+    AuthSvc -> Router: AuthResponse
+    Router -> FE: {access_token, user}
+    
+    FE -> FE: localStorage.setItem\n(TOKEN_KEY, access_token)
+    FE -> S: "Login successful!\nRedirect to app"
+end
+
+note right of FE
+  Protected Endpoints:
+  Every request includes:
+  Authorization: Bearer {token}
+end note
+
+S -> FE: Access protected feature\n(e.g., prediction)
+
+FE -> FE: Retrieve token\nfrom localStorage
+
+FE -> Router: POST /api/predict\nHeaders: {Authorization: Bearer token}
+
+Router -> Router: Extract JWT from header
+
+Router -> AuthSvc: get_current_user(token)
+
+AuthSvc -> JWT: decode JWT\n(verify signature)
+
+JWT -> AuthSvc: {sub: email, uid, exp}
+
+AuthSvc -> UserDB: find user by email
+
+UserDB -> AuthSvc: user_document
+
+AuthSvc -> Router: user_document (OK)\nor raise 401 Unauthorized
+
+Router -> Router: proceed with request\n(user available)
+
+Router -> S: Process and return
+
+@enduml
+
+
+/' ========================================================================================
+   13. CLASS DIAGRAM - BACKEND MODELS & SERVICES
+   ======================================================================================== '/
+
+@startuml ClassDiagram_Backend
+title Class Diagram - Backend Architecture
+
+package "Models" {
+    class UserCreate {
+        -email: str
+        -password: str
+        -full_name: Optional[str]
+    }
+    
+    class UserLogin {
+        -email: str
+        -password: str
+    }
+    
+    class UserPublic {
+        -id: str
+        -email: str
+        -full_name: Optional[str]
+        -created_at: Optional[datetime]
+    }
+    
+    class AuthResponse {
+        -access_token: str
+        -token_type: str
+        -user: UserPublic
+    }
+    
+    class StudentOnboarding {
+        -gpa: float
+        -python_exp: str
+        -sql_exp: str
+        -java_exp: str
+        -domain: str
+    }
+    
+    class SkillScores {
+        -Python: int
+        -SQL: int
+        -Java: int
+        -GPA: float
+    }
+    
+    class LearningPlan {
+        -advice: List[str]
+        -weakness_rank: List[List]
+        -beginner: str
+        -intermediate: str
+        -advanced: str
+        -projects: str
+        -tools: str
+    }
+    
+    class PredictionResponse {
+        -career: str
+        -plan: LearningPlan
+        -skills: SkillScores
+    }
+    
+    class ChatMessage {
+        -role: str
+        -content: str
+    }
+    
+    class ChatRequest {
+        -prompt: str
+        -history: List[ChatMessage]
+        -context: Dict
+    }
+    
+    class ChatResponse {
+        -response: str
+    }
+    
+    class FeedbackCreate {
+        -rating: int
+        -comment: str
+        -user_email: Optional[str]
+    }
+}
+
+package "Services" {
+    class AuthService {
+        +register(data: UserCreate): AuthResponse
+        +login(data: UserLogin): AuthResponse
+        +get_current_user(token: str): dict
+        +hash_password(password: str): str
+        +verify_password(plain: str, hashed: str): bool
+        +create_access_token(payload: Dict): str
+    }
+    
+    class PredictionService {
+        +predict_career(data: StudentOnboarding): PredictionResponse
+        -analyze_student(skills: Dict): List[tuple]
+        -generate_advice(weaknesses: List): List[str]
+        -get_learning_plan(career: str, skills: Dict): LearningPlan
+    }
+    
+    class ChatService {
+        +get_response(request: ChatRequest): str
+        +get_streaming_response(request: ChatRequest): Iterator[str]
+        -build_system_prompt(): str
+        -retrieve_context(query: str): str
+        -call_groq_api(prompt: str): str
+    }
+    
+    class LearningService {
+        +get_lesson(skill: str, week: int): Dict
+        +get_quiz(skill: str): Dict
+        +track_progress(user_id: str, data: Dict): None
+    }
+    
+    class RAGService {
+        +add_documents(text: str, metadata: Dict): Dict
+        +query_documents(query: str, limit: int): List[Dict]
+        +embed_text(text: str): List[float]
+        -chunk_text(text: str): List[str]
+    }
+}
+
+package "Routers" {
+    class AuthRouter {
+        +POST /register
+        +POST /login
+        +GET /me
+    }
+    
+    class PredictRouter {
+        +POST /predict
+    }
+    
+    class ChatRouter {
+        +POST /chat
+        +POST /chat/stream
+    }
+    
+    class LearningRouter {
+        +GET /lesson
+        +GET /quiz
+    }
+    
+    class FeedbackRouter {
+        +POST /
+    }
+    
+    class KnowledgeRouter {
+        +POST /upload/text
+        +POST /upload/file
+        +GET /search
+    }
+}
+
+package "Database" {
+    class MongoDBManager {
+        -sync_client: MongoClient
+        -db: Database
+        +connect()
+        +disconnect()
+        +get_collection(name: str): Collection
+    }
+}
+
+AuthService --> AuthResponse
+AuthService --> UserPublic
+PredictionService --> PredictionResponse
+PredictionService --> LearningPlan
+PredictionService --> SkillScores
+ChatService --> ChatResponse
+ChatService --> ChatRequest
+LearningService --> LearningPlan
+
+AuthRouter --> AuthService
+PredictRouter --> PredictionService
+ChatRouter --> ChatService
+LearningRouter --> LearningService
+FeedbackRouter --> FeedbackCreate
+KnowledgeRouter --> RAGService
+
+AuthService --> MongoDBManager
+PredictionService --> MongoDBManager
+ChatService --> MongoDBManager
+LearningService --> MongoDBManager
+RAGService --> MongoDBManager
+
+@enduml
+
+
+/' ========================================================================================
+   14. DEPLOYMENT & INFRASTRUCTURE DIAGRAM
+   ======================================================================================== '/
+
+@startuml Deployment_Infrastructure
+title Deployment & Infrastructure Architecture
+
+node "Client Environment" #E3F2FD {
+    component "Web Browser" as Browser
+    component "React App (Vite)" as ReactApp
+    interface "REST/WebSocket" as BrowserAPI
+}
+
+node "Cloud Infrastructure" #F3E5F5 {
+    node "Frontend Server" {
+        component "Nginx\nStatic Files & Proxy" as Nginx
+    }
+    
+    node "Backend API Server" {
+        component "FastAPI\nApplication" as FastAPI
+        component "Async Workers\n(Uvicorn)" as Workers
+        interface "HTTP/2 Port 8000" as APIPort
+    }
+    
+    node "ML/AI Services" {
+        component "Groq API Client" as GroqClient
+        component "Local ML Models\nLoader" as MLLoader
+        interface "REST to Groq\nCloud" as GroqInterface
+    }
+    
+    node "Data & Storage" {
+        database "MongoDB\nAtlas" as MongoAtlas
+        database "Vector Store\nPinecone/Milvus" as VectorStore
+        storage "File Storage\n(Lessons, Content)" as FileStorage
+    }
+}
+
+node "External Services" {
+    cloud "Groq Cloud" {
+        component "LLaMA Models\nInference Engine" as GroqCloud
+    }
+    
+    cloud "3rd Party APIs" {
+        component "Email Service\n(SendGrid)" as EmailService
+    }
+}
+
+Browser --> BrowserAPI
+BrowserAPI --> Nginx
+Nginx --> FastAPI
+FastAPI --> APIPort
+FastAPI --> Workers
+Workers --> MongoAtlas
+Workers --> VectorStore
+Workers --> FileStorage
+GroqClient --> GroqInterface
+GroqInterface --> GroqCloud
+FastAPI --> GroqClient
+FastAPI --> EmailService
+
+note right of Browser
+  Client: Latest Chrome/Firefox
+  HTTP/2 Support
+  WebSocket for streaming
+end note
+
+note right of FastAPI
+  Backend: Python 3.10+
+  Async I/O for real-time
+  Streaming responses
+end note
+
+note right of MongoAtlas
+  NoSQL Database
+  User data, profiles,
+  chat history, progress
+end note
+
+note right of GroqCloud
+  LLM Inference
+  Fast token generation
+  LLaMA 70B
+end note
+
+@enduml
+
+
+/' ========================================================================================
+   15. STATE DIAGRAM - USER JOURNEY
+   ======================================================================================== '/
+
+@startuml StateDiagram_UserJourney
+title State Diagram - Student User Journey
+
+[*] --> Unauthenticated
+
+state "Unauthenticated" as Unauth {
+    [*] --> ViewHome
+    ViewHome --> ViewFeedback: Navigate
+    ViewFeedback --> ViewLearning: Navigate
+    ViewLearning --> ViewRoadmap: Navigate
+    ViewRoadmap --> AuthChoice: Click Login
+}
+
+AuthChoice: Show Auth Modal
+
+AuthChoice --> Register: Choose Register
+AuthChoice --> Login: Choose Login
+
+state "Authentication" as Auth {
+    Register: Submit Registration
+    Register --> ValidateReg: Validate Input
+    ValidateReg --> [Register Error]: Invalid Input
+    [Register Error] --> Register
+    ValidateReg --> CreateAccount: Valid
+    CreateAccount --> AuthSuccess: Account Created
+    
+    Login: Submit Login
+    Login --> ValidateLogin: Validate Credentials
+    ValidateLogin --> [Login Error]: Invalid
+    [Login Error] --> Login
+    ValidateLogin --> AuthSuccess: Valid
+}
+
+AuthSuccess --> Authenticated
+
+state "Authenticated" as Auth2 {
+    state "Onboarded" as Onb {
+        [*] --> Onboarding
+        Onboarding --> SubmitProfile: Fill Form
+        SubmitProfile --> ProfileSuccess: Saved
+        ProfileSuccess --> [*]
+    }
+    
+    state "Main Application" as Main {
+        [*] --> Dashboard
+        Dashboard --> ViewPrediction: Get Prediction
+        ViewPrediction --> ViewExplanation: Read XAI
+        ViewExplanation --> Chat: Ask Questions
+        Chat --> Chat: Continue Conversation
+        Chat --> Learning: Access Learning
+        Learning --> LessonView: View Lessons
+        LessonView --> TakeQuiz: Take Quiz
+        TakeQuiz --> ViewProgress: Check Progress
+        ViewProgress --> Chat: Ask More Questions
+        LessonView --> Feedback: Submit Feedback
+        Feedback --> ViewProgress
+    }
+    
+    Onb --> Main: Onboarding Complete
+    Main --> [*]
+}
+
+Authenticated --> Logout: User Logout
+
+Logout --> Unauthenticated
+
+note right of Unauth
+  Public pages available
+  No auth required
+end note
+
+note right of Auth
+  Registration & Login
+  JWT token generation
+  Session management
+end note
+
+note right of Onb
+  First-time user flow
+  Profile creation
+end note
+
+note right of Main
+  Full application access
+  Prediction, Chat,
+  Learning Hub
+end note
+
+@enduml
+
+' End of all diagrams
