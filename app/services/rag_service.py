@@ -12,11 +12,19 @@ logger = logging.getLogger(__name__)
 
 class RAGService:
     def __init__(self):
-        # We use a free local huggingface embeddings model so you don't need OpenAI keys!
-        # This converts text into "number vectors" representing their meaning.
-        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        # Embeddings are initialized lazily on first use to avoid httpx
+        # client lifecycle issues during async server startup.
+        self._embeddings = None
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
         self.index_name = "vector_index" # You will need to create this index in Atlas UI
+
+    @property
+    def embeddings(self):
+        if self._embeddings is None:
+            logger.info("Loading HuggingFace embeddings model (all-MiniLM-L6-v2)...")
+            self._embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+            logger.info("Embeddings model loaded successfully.")
+        return self._embeddings
     
     @property
     def vector_store(self):
@@ -103,4 +111,8 @@ class RAGService:
             logger.error(f"Failed to seed knowledge base: {e}")
             raise
 
-rag_service = RAGService()
+try:
+    rag_service = RAGService()
+except Exception as e:
+    logger.error(f"Failed to initialize RAGService: {e}")
+    rag_service = None
