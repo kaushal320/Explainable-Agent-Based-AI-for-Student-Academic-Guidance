@@ -1,0 +1,53 @@
+@startuml DFD_Level2_Prediction
+title Data Flow Diagram - Level 2 (Career Prediction Process) - Extended
+
+entity "Student User" as Student
+database "Profile DB" as ProfileDB
+database "ML Models" as MLModels
+database "External Job Market API" as JobAPI
+entity "Groq API" as GroqAPI
+
+node "3.1: Data Extraction" as P31 #FFFFCC
+node "3.2: Market Trend Analysis" as P32 #FFFFCC
+node "3.3: Feature Engineering" as P33 #FFFFCC
+node "3.4: ML Prediction Execution" as P34 #FFFFCC
+node "3.5: XAI Explanation Gen" as P35 #FFFFCC
+node "3.6: Learning Plan Gen" as P36 #FFFFCC
+node "3.7: Audit Logging" as P37 #FFFFCC
+
+database "Features Store" as DS31
+database "Predictions Store" as DS32
+database "Explanations Store" as DS33
+
+Student --> P31 : Raw Data Request
+ProfileDB --> P31 : Academic & Skill Records
+P31 --> DS31 : Normalized Base Features
+
+DS31 --> P32 : Industry/Domain Prefs
+JobAPI --> P32 : Current Job Trends & Demands
+P32 --> P33 : Market-Enriched Data
+
+P33 --> DS31 : Store Engineered Vectors
+P33 --> P34 : Final Feature Vector
+
+P34 --> MLModels : Load Encoders/Classifiers
+MLModels --> P34 : Probabilities & Classes
+P34 --> DS32 : Prediction Output (Ranked Careers)
+
+DS32 --> P35 : Top Prediction
+DS31 --> P35 : Student Strengths & Weaknesses
+P35 --> GroqAPI : Prompt for XAI Reasoning
+GroqAPI --> P35 : Natural Language Explanation
+P35 --> DS33 : Store XAI Text Result
+
+DS32 --> P36 : Predicted Career
+P36 --> Student : Adaptive Learning Plan
+
+P34 --> P37 : Prediction Accuracy Metrics
+P35 --> P37 : LLM Tokens Used
+P37 --> ProfileDB : System Audit Logs
+
+DS32 --> Student : Prediction Result
+DS33 --> Student : Explanation Output
+
+@enduml

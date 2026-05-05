@@ -13,8 +13,6 @@ async def get_lesson(skill: str, week: int, current_user: dict = Depends(require
     return {"content": content}
 
 @router.get("/quiz")
-async def get_quiz(skill: str, current_user: dict = Depends(require_user)):
-    quiz = get_mock_quiz(skill)
-    if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found for this skill")
+async def get_quiz(skill: str, week: int = 1, current_user: dict = Depends(require_user)):
+    quiz = get_mock_quiz(skill, week)
     return quiz

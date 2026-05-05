@@ -1,0 +1,128 @@
+@startuml UseCase_System_Extended
+title Extended Use Case Diagram - Scholar Hub System
+
+left to right direction
+
+' Actors
+actor "Student" as Student
+actor "System Administrator" as Admin
+actor "Tutor / Instructor" as Tutor
+actor "Groq AI Engine" as AIEngine
+actor "Database System" as Database
+actor "RAG Service" as RAGService
+actor "Notification Service" as NotifService
+actor "Payment Gateway" as PaymentGateway
+
+rectangle "Scholar Hub Platform" {
+    
+    ' Authentication & Profile
+    usecase "Register Account" as UC1
+    usecase "Login" as UC2
+    usecase "Complete Onboarding" as UC3
+    usecase "Input Academic Data" as UC4
+    usecase "Purchase Premium Subscription" as UC_Pay
+    
+    ' Core AI Features
+    usecase "Get Career Prediction" as UC5
+    usecase "View Prediction Explanation" as UC6
+    usecase "View Academic Roadmap" as UC16
+    
+    ' Chat & Tutor Interaction
+    usecase "Chat with AI Tutor" as UC7
+    usecase "Use Voice Commands" as UC_Voice
+    usecase "Receive Audio Feedback (TTS)" as UC_Audio
+    
+    ' Live Sessions & Engagement
+    usecase "Join Live AI Session" as UC_LiveJoin
+    usecase "Schedule Live Session" as UC_LiveSchedule
+    usecase "Monitor Student Engagement" as UC_LiveEngage
+    usecase "Track Yawn/Look-away" as UC_TrackEngage
+    
+    ' Learning & Gamification
+    usecase "Access Learning Hub" as UC9
+    usecase "View Learning Plan" as UC10
+    usecase "Complete Lessons" as UC11
+    usecase "Take Assessments (Quiz/Assignment)" as UC12
+    usecase "Earn Gamification Badges" as UC_Badge
+    usecase "Track Progress" as UC17
+    
+    ' Knowledge Base
+    usecase "Upload Knowledge Documents" as UC13
+    usecase "Search Knowledge Base" as UC14
+    
+    ' System Management & Feedback
+    usecase "Submit Feedback" as UC15
+    usecase "Manage User Database" as UC18
+    usecase "Manage Course Catalog" as UC_Catalog
+    usecase "Configure System Integrations" as UC19
+    usecase "Monitor System Health" as UC20
+    
+    ' Backend Processing Use Cases
+    usecase "Process Career Prediction" as UC21
+    usecase "Generate AI Response" as UC22
+    usecase "Process Payment Transaction" as UC_ProcessPay
+    usecase "Retrieve Context Documents" as UC23
+    usecase "Send Alert Notifications" as UC_SendAlert
+}
+
+' Student Relationships
+Student --> UC1
+Student --> UC2
+Student --> UC3
+Student --> UC4
+Student --> UC_Pay
+Student --> UC5
+Student --> UC6
+Student --> UC7
+Student --> UC_LiveJoin
+Student --> UC9
+Student --> UC10
+Student --> UC11
+Student --> UC12
+Student --> UC13
+Student --> UC14
+Student --> UC15
+Student --> UC16
+Student --> UC17
+
+' Tutor Relationships
+Tutor --> UC_LiveSchedule
+Tutor --> UC_LiveEngage
+Tutor --> UC_Catalog
+
+' Admin Relationships
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC_Catalog
+
+' Includes and Extends
+UC_Pay ..> UC_ProcessPay : <<include>>
+UC5 ..> UC21 : <<include>>
+UC7 ..> UC22 : <<include>>
+UC_LiveJoin ..> UC_TrackEngage : <<include>>
+UC_TrackEngage ..> UC_SendAlert : <<extend>>
+UC7 <.. UC_Voice : <<extend>>
+UC22 <.. UC_Audio : <<extend>>
+UC13 ..> UC23 : <<include>>
+UC14 ..> UC23 : <<include>>
+UC12 <.. UC_Badge : <<extend>>
+
+' External Systems Relationships
+UC_ProcessPay --> PaymentGateway
+UC21 --> AIEngine
+UC22 --> AIEngine
+UC1 --> Database
+UC2 --> Database
+UC7 --> Database
+UC13 --> RAGService
+UC23 --> RAGService
+UC_SendAlert --> NotifService
+
+' Precedes (Flows)
+UC3 .-> UC4 : <<precedes>>
+UC4 .-> UC5 : <<precedes>>
+UC5 .-> UC6 : <<precedes>>
+UC6 .-> UC9 : <<precedes>>
+
+@enduml

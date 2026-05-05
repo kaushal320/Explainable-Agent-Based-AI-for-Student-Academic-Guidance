@@ -126,14 +126,12 @@ export const streamMessage = async (prompt, history, context, onChunk) => {
 };
 
 export const getLesson = async (skill, week) => {
-  const response = await api.get(
-    `/learning/lesson?skill=${skill}&week=${week}`,
-  );
+  const response = await api.get('/learning/lesson', { params: { skill, week } });
   return response.data;
 };
 
-export const getQuiz = async (skill) => {
-  const response = await api.get(`/learning/quiz?skill=${skill}`);
+export const getQuiz = async (skill, week) => {
+  const response = await api.get('/learning/quiz', { params: { skill, week } });
   return response.data;
 };
 

@@ -34,7 +34,7 @@ class CareerExplanation(BaseModel):
     runner_up_confidence: Optional[float] = None
     top_positive_drivers: List[FeatureContribution] = Field(default_factory=list)
     top_negative_drivers: List[FeatureContribution] = Field(default_factory=list)
-    model_global_importance: List[Dict[str, float]] = Field(default_factory=list)
+    model_global_importance: List[Dict[str, Any]] = Field(default_factory=list)
 
 class PredictionResponse(BaseModel):
     career: str

@@ -1,0 +1,254 @@
+@startuml ERD_Database_Schema
+!define ENTITY_COLOR #FFE5CC
+!define ATTRIBUTE_COLOR #FFFFCC
+!define KEY_COLOR #FFD700
+
+title Entity Relationship Diagram - Database Schema (Extended)
+
+entity "Institution" as Institution #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * name : String
+    * domain : String
+    address : String
+    contact_email : String
+    created_at : DateTime
+}
+
+entity "User" as User #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * institution_id : ObjectId <<FK>>
+    * email : String <<UNIQUE>>
+    * password_hash : String
+    full_name : String
+    role : String (student/admin)
+    is_verified : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity "Subscription" as Subscription #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    plan_name : String
+    status : String (active/expired)
+    start_date : DateTime
+    end_date : DateTime
+}
+
+entity "PaymentTransaction" as PaymentTransaction #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * subscription_id : ObjectId <<FK>>
+    amount : Float
+    currency : String
+    status : String (success/failed)
+    payment_method : String
+    transaction_date : DateTime
+}
+
+entity "StudentProfile" as StudentProfile #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    gpa : Float
+    major : String
+    python_experience : String
+    sql_experience : String
+    java_experience : String
+    interested_domain : String
+    learning_style : String
+    completed_onboarding : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity "CareerPrediction" as CareerPrediction #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    predicted_career : String
+    prediction_score : Float
+    skill_scores : JSON
+    learning_plan : JSON
+    confidence_interval : Float
+    prediction_date : DateTime
+    is_active : Boolean
+}
+
+entity "Course" as Course #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * career_path : String
+    title : String
+    description : String
+    total_hours : Integer
+    difficulty_level : String
+    created_at : DateTime
+}
+
+entity "Module" as Module #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * course_id : ObjectId <<FK>>
+    title : String
+    order_index : Integer
+    description : String
+}
+
+entity "LessonContent" as LessonContent #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * module_id : ObjectId <<FK>>
+    skill_name : String
+    week_number : Integer
+    title : String
+    content : String
+    resources : String[]
+    video_url : String
+    difficulty : String (beginner/intermediate/advanced)
+}
+
+entity "Quiz" as Quiz #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * lesson_id : ObjectId <<FK>>
+    skill_name : String
+    questions : JSON[]
+    difficulty : String
+    passing_score : Integer
+    time_limit_minutes : Integer
+    created_at : DateTime
+}
+
+entity "LearningProgress" as LearningProgress #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * prediction_id : ObjectId <<FK>>
+    * lesson_id : ObjectId <<FK>>
+    skill_name : String
+    week_number : Integer
+    lesson_completed : Boolean
+    quiz_score : Float
+    time_spent_seconds : Integer
+    notes : String
+    last_updated : DateTime
+}
+
+entity "Achievement" as Achievement #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    title : String
+    description : String
+    badge_icon_url : String
+    criteria : JSON
+    points : Integer
+}
+
+entity "UserAchievement" as UserAchievement #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * achievement_id : ObjectId <<FK>>
+    earned_at : DateTime
+}
+
+entity "LiveSession" as LiveSession #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * course_id : ObjectId <<FK>>
+    session_title : String
+    start_time : DateTime
+    end_time : DateTime
+    duration_minutes : Integer
+    status : String (scheduled/ongoing/completed)
+}
+
+entity "SessionEngagement" as SessionEngagement #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * session_id : ObjectId <<FK>>
+    timestamp : DateTime
+    fatigue_level : Float
+    distraction_score : Float
+    yawn_detected : Boolean
+    look_away_detected : Boolean
+}
+
+entity "ChatMessage" as ChatMessage #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * session_id : ObjectId <<FK>>
+    role : String (user/assistant)
+    content : String
+    audio_url : String
+    timestamp : DateTime
+    message_order : Integer
+}
+
+entity "KnowledgeBase" as KnowledgeBase #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    content : String
+    source : String
+    document_type : String (pdf/txt/url)
+    embedding : Vector
+    chunk_index : Integer
+    created_at : DateTime
+}
+
+entity "Notification" as Notification #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    title : String
+    message : String
+    is_read : Boolean
+    type : String (alert/reminder/system)
+    created_at : DateTime
+}
+
+entity "Feedback" as Feedback #FFE5CC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    target_feature : String
+    rating : Integer (1-5)
+    comment : String
+    created_at : DateTime
+}
+
+Institution ||--o{ User : "registers"
+User ||--o{ Subscription : "has"
+Subscription ||--o{ PaymentTransaction : "generates"
+User ||--o{ StudentProfile : "has"
+User ||--o{ CareerPrediction : "requests"
+User ||--o{ ChatMessage : "sends"
+User ||--o{ LearningProgress : "tracks"
+User ||--o{ KnowledgeBase : "uploads"
+User ||--o{ UserAchievement : "earns"
+User ||--o{ LiveSession : "attends"
+User ||--o{ Notification : "receives"
+User ||--o{ Feedback : "provides"
+
+Achievement ||--o{ UserAchievement : "awarded as"
+CareerPrediction ||--o{ LearningProgress : "guides"
+
+Course ||--o{ Module : "contains"
+Module ||--o{ LessonContent : "includes"
+Course ||--o{ LiveSession : "hosts"
+
+LessonContent ||--o{ Quiz : "has"
+LessonContent ||--o{ LearningProgress : "referenced by"
+
+LiveSession ||--o{ SessionEngagement : "monitors"
+LiveSession ||--o{ ChatMessage : "records"
+
+@enduml

@@ -701,7 +701,20 @@ def get_lesson_content(skill, week):
         }
     }
     
-    return lessons.get(skill, {}).get(week, "No lesson found for this topic.")
+    lesson = lessons.get(skill, {}).get(week)
+    if lesson:
+        return lesson
+
+    # Fallback: return a generic 4-week lesson for unknown skills so frontend
+    # receives usable content instead of a 404.
+    generic_row = {
+        "beginner": "Core concepts and fundamentals",
+        "intermediate": "Guided practice and applied examples",
+        "advanced": "Advanced topics and real-world scenarios",
+        "projects": "Capstone-style project",
+        "tools": "Online resources and documentation"
+    }
+    return _format_study_content(skill, generic_row, week)
 
 
 def _split_topics(raw_value):
@@ -908,7 +921,27 @@ def get_mock_quiz(weakest_skill, week=1):
             "explanation": "Active recall and spaced repetition are proven to be the most effective study techniques."
         }
     }
-    return quizzes.get(weakest_skill, None)
+    default_quiz = quizzes.get(weakest_skill)
+    if default_quiz:
+        return default_quiz
+
+    # Generic fallback quiz when the career/skill isn't present in the data
+    generic_question = {
+        "question": f"Which focus is most appropriate for Week {week}?",
+        "options": ["Basics", "Guided Practice", "Advanced", "Project"],
+        "answer": 0,
+        "explanation": "Start with the basics for new or undefined skills."
+    }
+    return {
+        "career": weakest_skill,
+        "week": week,
+        "title": f"Week {week} Assessment: {weakest_skill}",
+        "questions": [generic_question],
+        "question": generic_question["question"],
+        "options": generic_question["options"],
+        "answer": generic_question["answer"],
+        "explanation": generic_question["explanation"],
+    }
 
 def get_groq_response(query, chat_history, context):
     """Calls Groq API to provide AI tutoring based on student context."""

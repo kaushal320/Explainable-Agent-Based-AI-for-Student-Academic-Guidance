@@ -1,0 +1,49 @@
+@startuml Sequence_CareerPrediction
+title Sequence Diagram - Career Prediction Flow
+
+actor Student
+participant "React UI" as UI
+participant "FastAPI" as API
+participant "PredictionService" as PredService
+participant "ML Models" as MLModels
+participant "GroqAPI" as Groq
+participant "MongoDB" as DB
+
+Student -> UI: Submit Onboarding Data\n(GPA, Skills, Domain)
+UI -> API: POST /api/predict\n(StudentOnboarding)
+API -> PredService: predict_career()
+
+PredService -> PredService: Transform Features\n(exp_mapping, calculations)
+PredService -> MLModels: Load encoders\nTransform domain
+
+MLModels -> PredService: domain_encoded
+
+PredService -> MLModels: Load classifier model\nPredict career
+
+MLModels -> PredService: prediction_array\ncareer_class
+
+PredService -> PredService: Inverse transform\ncareer name
+
+PredService -> PredService: Analyze Weaknesses\n(skill_gaps)
+
+PredService -> Groq: Generate Explanation\nPrompt: Why this career?
+
+Groq -> Groq: LLM Inference\n(LLaMA model)
+
+Groq -> PredService: Explanation Text
+
+PredService -> DB: Get learning plan\ntemplate for career
+
+DB -> PredService: Career content\n(beginner, intermediate, advanced)
+
+PredService -> PredService: Build LearningPlan\nobject
+
+PredService -> API: Return PredictionResponse
+
+API -> UI: {\n  career: "Data Scientist",\n  plan: {...},\n  skills: {...}\n}
+
+UI -> UI: Update Redux State\nDisplay Prediction
+
+UI -> Student: Show Career + Explanation\nRendered Learning Plan
+
+@enduml

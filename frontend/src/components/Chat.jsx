@@ -16,7 +16,12 @@ import {
   Camera,
   CameraOff,
 } from "lucide-react";
-import { streamMessage, sendAgentMessage, API_BASE_URL, transcribeAudio } from "../api";
+import {
+  streamMessage,
+  sendAgentMessage,
+  API_BASE_URL,
+  transcribeAudio,
+} from "../api";
 import { useNavigate } from "react-router-dom";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
@@ -143,6 +148,7 @@ const Chat = ({ user }) => {
   const currentUtterRef = useRef(null);
   const [listening, setListening] = useState(false);
   const [engagementEnabled, setEngagementEnabled] = useState(false);
+  const [selectedCameraLabel, setSelectedCameraLabel] = useState("");
   const engagementEnabledRef = useRef(false);
   const voiceTimeoutRef = useRef(null);
   const [engagementStatus, setEngagementStatus] = useState("off");
@@ -180,22 +186,22 @@ const Chat = ({ user }) => {
   // Strip markdown syntax so TTS doesn't read out "asterisk" / "hashtag" etc.
   const stripMarkdown = (text) =>
     text
-      .replace(/```[\s\S]*?```/g, "")           // remove fenced code blocks
-      .replace(/`[^`]*`/g, "")                   // remove inline code
-      .replace(/^#{1,6}\s*/gm, "")              // remove # heading markers
-      .replace(/^[=\-]{2,}\s*$/gm, "")          // remove === / --- underline-style headings & hr
-      .replace(/\*\*(.*?)\*\*/g, "$1")           // **bold** → plain
-      .replace(/\*(.*?)\*/g, "$1")               // *italic* → plain
-      .replace(/~~(.*?)~~/g, "$1")               // ~~strikethrough~~ → plain
-      .replace(/_{1,2}(.*?)_{1,2}/g, "$1")      // _underline_ → plain
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")  // [link](url) → label only
-      .replace(/!\[[^\]]*\]\([^)]+\)/g, "")     // ![image](url) → remove
-      .replace(/^\s*[-*+]\s+/gm, "")            // bullet list markers
-      .replace(/^\s*\d+\.\s+/gm, "")            // numbered list markers
-      .replace(/^\s*>\s*/gm, "")                // blockquotes
-      .replace(/\|/g, " ")                       // table pipes → space
-      .replace(/={1,}/g, "")                    // ALL equal signs (=, ==, ===)
-      .replace(/~{1,}/g, "")                    // stray tildes
+      .replace(/```[\s\S]*?```/g, "") // remove fenced code blocks
+      .replace(/`[^`]*`/g, "") // remove inline code
+      .replace(/^#{1,6}\s*/gm, "") // remove # heading markers
+      .replace(/^[=\-]{2,}\s*$/gm, "") // remove === / --- underline-style headings & hr
+      .replace(/\*\*(.*?)\*\*/g, "$1") // **bold** → plain
+      .replace(/\*(.*?)\*/g, "$1") // *italic* → plain
+      .replace(/~~(.*?)~~/g, "$1") // ~~strikethrough~~ → plain
+      .replace(/_{1,2}(.*?)_{1,2}/g, "$1") // _underline_ → plain
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // [link](url) → label only
+      .replace(/!\[[^\]]*\]\([^)]+\)/g, "") // ![image](url) → remove
+      .replace(/^\s*[-*+]\s+/gm, "") // bullet list markers
+      .replace(/^\s*\d+\.\s+/gm, "") // numbered list markers
+      .replace(/^\s*>\s*/gm, "") // blockquotes
+      .replace(/\|/g, " ") // table pipes → space
+      .replace(/={1,}/g, "") // ALL equal signs (=, ==, ===)
+      .replace(/~{1,}/g, "") // stray tildes
       .replace(/\s+/g, " ")
       .trim();
 
@@ -218,14 +224,14 @@ const Chat = ({ user }) => {
     } catch {
       // ignore
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, ttsEnabled]);
 
   const toggleListening = async () => {
     if (listening) {
       shouldListenRef.current = false;
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       }
       voiceHadErrorRef.current = false;
       setListening(false);
@@ -236,11 +242,15 @@ const Chat = ({ user }) => {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
       mediaStreamRef.current = stream;
-      
+
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
@@ -271,7 +281,7 @@ const Chat = ({ user }) => {
             const merged = baseText ? `${baseText} ${newText}` : newText;
             voiceBaseRef.current = merged;
             setInput(merged);
-            
+
             if (engagementEnabledRef.current) {
               handleSend(merged);
               voiceBaseRef.current = "";
@@ -282,14 +292,14 @@ const Chat = ({ user }) => {
           console.error("Transcription error:", e);
         }
         if (shouldListenRef.current) {
-           setVoiceStatus("listening");
-           setVoiceHint("Hearing you... (Custom AI Voice)");
+          setVoiceStatus("listening");
+          setVoiceHint("Hearing you... (Custom AI Voice)");
         }
       };
 
       const checkVolume = () => {
         if (!shouldListenRef.current) return;
-        
+
         let avg = 0;
         // Software echo cancellation: completely ignore mic input if the AI is currently talking
         if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
@@ -299,12 +309,13 @@ const Chat = ({ user }) => {
           avg = sum / dataArray.length;
         }
 
-        if (avg > 15) { // Threshold for speaking
+        if (avg > 15) {
+          // Threshold for speaking
           if (!isCurrentlySpeaking) {
             isCurrentlySpeaking = true;
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
               const blob = new Blob(audioChunks, { type: "audio/webm" });
               processAudio(blob);
@@ -325,7 +336,7 @@ const Chat = ({ user }) => {
         }
         requestAnimationFrame(checkVolume);
       };
-      
+
       checkVolume();
     } catch (e) {
       setVoiceStatus("error");
@@ -339,7 +350,7 @@ const Chat = ({ user }) => {
       shouldListenRef.current = false;
       voiceHadErrorRef.current = false;
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       }
       try {
         if ("speechSynthesis" in window) {
@@ -359,19 +370,110 @@ const Chat = ({ user }) => {
     return Math.sqrt(dx * dx + dy * dy);
   };
 
+  const getVideoInputScore = (device) => {
+    const label = String(device?.label || "").toLowerCase();
+    if (
+      label.includes("streamlabs") ||
+      label.includes("obs") ||
+      label.includes("virtual camera")
+    ) {
+      return 3;
+    }
+    if (label.includes("camera")) {
+      return 2;
+    }
+    return 1;
+  };
+
+  const getBestVideoInputs = async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return [];
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices
+      .filter((device) => device.kind === "videoinput")
+      .sort(
+        (left, right) => getVideoInputScore(right) - getVideoInputScore(left),
+      );
+  };
+
+  const startVideoStream = async () => {
+    const videoInputs = await getBestVideoInputs();
+
+    for (const device of videoInputs) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: device.deviceId } },
+          audio: false,
+        });
+        return { stream, label: device.label || "Selected camera" };
+      } catch {
+        // Try the next camera source.
+      }
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false,
+    });
+    return { stream, label: "Default camera" };
+  };
+
+  const getEngagementStartErrorMessage = (error) => {
+    const errorName = error?.name || "";
+    const errorMessage = String(error?.message || "");
+
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      return "Camera access requires HTTPS or localhost. Open this app in a secure browser tab and try again.";
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return "Your browser does not support camera access in this page.";
+    }
+
+    if (
+      errorName === "NotAllowedError" ||
+      errorName === "PermissionDeniedError"
+    ) {
+      return "Camera permission was denied. Allow camera access in the browser and try again.";
+    }
+
+    if (errorName === "NotFoundError" || errorName === "OverconstrainedError") {
+      return "No usable camera was found. Connect a webcam or switch to a different camera device.";
+    }
+
+    if (errorName === "NotReadableError" || errorName === "TrackStartError") {
+      return "The camera is already in use by another app. If Streamlabs is using the webcam, enable Streamlabs Virtual Camera and select it, or close the other app and try again.";
+    }
+
+    if (
+      /mediapipe|cdn|model|fetch|network|failed to load/i.test(errorMessage)
+    ) {
+      return "Camera started, but face tracking could not load because the model files were unavailable. Check your network and try again.";
+    }
+
+    return "Could not start camera/gesture recognition. Please allow camera permission and try again.";
+  };
+
   const startEngagement = async () => {
     if (streamRef.current) return;
     setEngagementStatus("starting");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
+      if (typeof window !== "undefined" && !window.isSecureContext) {
+        throw new Error("Insecure context");
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Camera API unavailable");
+      }
+
+      const { stream, label } = await startVideoStream();
       streamRef.current = stream;
+      setSelectedCameraLabel(label);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
+
+      setEngagementStatus("on");
 
       if (!landmarkerRef.current) {
         const resolver = await FilesetResolver.forVisionTasks(
@@ -395,9 +497,10 @@ const Chat = ({ user }) => {
         );
       }
 
-      setEngagementStatus("on");
-      pushCoachMessage("👨‍🏫 **Live Class Started**. I am now actively teaching and monitoring your engagement. Let's dive in! What topic would you like to cover today?");
-      
+      pushCoachMessage(
+        "👨‍🏫 **Live Class Started**. I am now actively teaching and monitoring your engagement. Let's dive in! What topic would you like to cover today?",
+      );
+
       const loop = () => {
         const video = videoRef.current;
         const lm = landmarkerRef.current;
@@ -419,7 +522,13 @@ const Chat = ({ user }) => {
               ctx.beginPath();
               for (const pt of face) {
                 ctx.moveTo(pt.x * canvas.width, pt.y * canvas.height);
-                ctx.arc(pt.x * canvas.width, pt.y * canvas.height, 1.2, 0, 2 * Math.PI);
+                ctx.arc(
+                  pt.x * canvas.width,
+                  pt.y * canvas.height,
+                  1.2,
+                  0,
+                  2 * Math.PI,
+                );
               }
               ctx.fill();
             }
@@ -445,41 +554,69 @@ const Chat = ({ user }) => {
             const isAway = Math.abs(nose.x - midX) > 0.15;
 
             // ── Frame-sustain debounce: must hold for 30 frames (~500ms) ──
-            sustainRef.current.yawn = isYawning ? sustainRef.current.yawn + 1 : 0;
-            sustainRef.current.away = isAway  ? sustainRef.current.away + 1  : 0;
+            sustainRef.current.yawn = isYawning
+              ? sustainRef.current.yawn + 1
+              : 0;
+            sustainRef.current.away = isAway ? sustainRef.current.away + 1 : 0;
 
-            const SUSTAIN_FRAMES = 30;  // ~500ms at 60fps
-            const COOLDOWN_MS    = 5000;  // 5s between repeat alerts (so user can test repeatedly)
+            const SUSTAIN_FRAMES = 30; // ~500ms at 60fps
+            const COOLDOWN_MS = 5000; // 5s between repeat alerts (so user can test repeatedly)
             const t = Date.now();
 
-            if (sustainRef.current.yawn >= SUSTAIN_FRAMES &&
-                t - cooldownRef.current.yawn > COOLDOWN_MS) {
+            if (
+              sustainRef.current.yawn >= SUSTAIN_FRAMES &&
+              t - cooldownRef.current.yawn > COOLDOWN_MS
+            ) {
               cooldownRef.current.yawn = t;
               sustainRef.current.yawn = 0; // reset
-              setEngagementAlert({ type: "yawn", msg: "😴 Yawn detected! You look tired — want a quick 2-minute break?" });
+              setEngagementAlert({
+                type: "yawn",
+                msg: "😴 Yawn detected! You look tired — want a quick 2-minute break?",
+              });
               if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
-              alertTimerRef.current = setTimeout(() => setEngagementAlert(null), 7000);
-              
-              const msg = "I noticed you yawning! Are you feeling tired? Let me know if you want a quick 2-minute break before we continue our lesson.";
+              alertTimerRef.current = setTimeout(
+                () => setEngagementAlert(null),
+                7000,
+              );
+
+              const msg =
+                "I noticed you yawning! Are you feeling tired? Let me know if you want a quick 2-minute break before we continue our lesson.";
               pushCoachMessage(msg);
               if (ttsEnabledRef.current && "speechSynthesis" in window) {
                 window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance("I noticed you yawning. Are you feeling tired?"));
+                window.speechSynthesis.speak(
+                  new SpeechSynthesisUtterance(
+                    "I noticed you yawning. Are you feeling tired?",
+                  ),
+                );
               }
             }
-            if (sustainRef.current.away >= SUSTAIN_FRAMES &&
-                t - cooldownRef.current.away > COOLDOWN_MS) {
+            if (
+              sustainRef.current.away >= SUSTAIN_FRAMES &&
+              t - cooldownRef.current.away > COOLDOWN_MS
+            ) {
               cooldownRef.current.away = t;
               sustainRef.current.away = 0; // reset
-              setEngagementAlert({ type: "away", msg: "👀 You looked away! Stay focused — I'm here to help." });
+              setEngagementAlert({
+                type: "away",
+                msg: "👀 You looked away! Stay focused — I'm here to help.",
+              });
               if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
-              alertTimerRef.current = setTimeout(() => setEngagementAlert(null), 7000);
-              
-              const msg = "It looks like you're getting distracted. Try to stay focused on the lesson — I'm here to help if something is confusing!";
+              alertTimerRef.current = setTimeout(
+                () => setEngagementAlert(null),
+                7000,
+              );
+
+              const msg =
+                "It looks like you're getting distracted. Try to stay focused on the lesson — I'm here to help if something is confusing!";
               pushCoachMessage(msg);
               if (ttsEnabledRef.current && "speechSynthesis" in window) {
                 window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance("It looks like you're getting distracted. Please try to stay focused on the lesson."));
+                window.speechSynthesis.speak(
+                  new SpeechSynthesisUtterance(
+                    "It looks like you're getting distracted. Please try to stay focused on the lesson.",
+                  ),
+                );
               }
             }
           } else {
@@ -495,9 +632,8 @@ const Chat = ({ user }) => {
       rafRef.current = requestAnimationFrame(loop);
     } catch (e) {
       setEngagementStatus("off");
-      pushCoachMessage(
-        "❌ Could not start camera/gesture recognition. Please allow camera permission and try again.",
-      );
+      console.error("Failed to start live class engagement:", e);
+      pushCoachMessage(`❌ ${getEngagementStartErrorMessage(e)}`);
     }
   };
 
@@ -623,17 +759,11 @@ const Chat = ({ user }) => {
       {/* Single always-mounted video — toggled visible/hidden via CSS class.
           Keeping it always in the DOM ensures videoRef stays stable and the
           stream assigned in startEngagement() is never lost on re-mount. */}
-      <div className={`engage-cam-float ${engagementStatus === "on" ? "engage-cam-visible" : "engage-cam-hidden"}`}>
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className="engage-cam-video"
-        />
-        <canvas
-          ref={canvasRef}
-          className="engage-cam-canvas"
-        />
+      <div
+        className={`engage-cam-float ${engagementStatus === "on" ? "engage-cam-visible" : "engage-cam-hidden"}`}
+      >
+        <video ref={videoRef} playsInline muted className="engage-cam-video" />
+        <canvas ref={canvasRef} className="engage-cam-canvas" />
         {engagementStatus === "on" && (
           <div className="engage-cam-badge">
             <span className="engage-cam-dot" />
@@ -694,7 +824,9 @@ const Chat = ({ user }) => {
               onClick={() => {
                 if (ttsEnabled) {
                   // Turn OFF — stop any active speech immediately
-                  try { window.speechSynthesis.cancel(); } catch {}
+                  try {
+                    window.speechSynthesis.cancel();
+                  } catch {}
                   setTtsSpeaking(false);
                   currentUtterRef.current = null;
                   setTtsEnabled(false);
@@ -707,7 +839,13 @@ const Chat = ({ user }) => {
               className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-1 ${
                 ttsEnabled ? "text-indigo-500" : "text-slate-500"
               }`}
-              title={ttsEnabled ? (ttsSpeaking ? "Stop speaking" : "TTS on – click to disable") : "Speak AI replies (text-to-speech)"}
+              title={
+                ttsEnabled
+                  ? ttsSpeaking
+                    ? "Stop speaking"
+                    : "TTS on – click to disable"
+                  : "Speak AI replies (text-to-speech)"
+              }
             >
               {ttsEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
               {ttsSpeaking ? "Stop" : "Speak"}
@@ -726,6 +864,11 @@ const Chat = ({ user }) => {
               Live Class
             </button>
           </div>
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-right max-w-[220px]">
+            {selectedCameraLabel
+              ? `Camera: ${selectedCameraLabel}`
+              : "Auto-picks Streamlabs/OBS virtual camera when available"}
+          </span>
           <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
             v2.0 Beta
           </span>

@@ -1,0 +1,57 @@
+@startuml DFD_Level1_Processes
+title Data Flow Diagram - Level 1 (Main Processes) - Extended
+
+entity "Student User" as Student
+entity "Tutor" as Tutor
+entity "Administrator" as Admin
+entity "External APIs" as ExtServices
+database "MongoDB" as DB
+database "Local ML Model" as MLModel
+
+' Processes
+node "1.0: Auth & Access\nControl" as P1 #FFE5CC
+node "2.0: Profile & Subscription\nManagement" as P2 #FFE5CC
+node "3.0: Career Prediction\nEngine" as P3 #FFE5CC
+node "4.0: AI Chat & Voice\nAgent" as P4 #FFE5CC
+node "5.0: Learning & Gamification\nHub" as P5 #FFE5CC
+node "6.0: RAG Knowledge\nBase" as P6 #FFE5CC
+node "7.0: Live Session &\nEngagement" as P7 #FFE5CC
+node "8.0: Notifications &\nAlerts" as P8 #FFE5CC
+
+' Data Stores
+database "User & Sub Store" as DS1
+database "Prediction Store" as DS3
+database "Chat & Audio Store" as DS4
+database "Learning Store" as DS5
+database "Session Logs Store" as DS7
+
+Student --> P1 : Login Credentials
+P1 --> DS1 : Auth Data Validation
+
+Student --> P2 : Profile Data, Payment Info
+P2 --> ExtServices : Process Payment
+P2 --> DS1 : Profile/Sub Status
+
+Student --> P3 : Trigger Prediction Request
+P3 --> MLModel : Feature Vector
+P3 --> DS3 : Store Prediction Outputs
+
+Student --> P4 : Text/Voice Query
+P4 --> ExtServices : STT/TTS Conversions
+P4 --> DS4 : Message & Audio Logs
+
+Student --> P5 : Access Lessons
+P5 --> DS5 : Track Gamification Progress
+P5 --> P8 : Earn Badge (Trigger Alert)
+
+Tutor --> P7 : Host Live Session
+Student --> P7 : Join Session (Video/Audio)
+P7 --> DS7 : Engagement Metrics (Yawns/Focus)
+P7 --> P8 : Distraction/Fatigue Alert
+
+P8 --> Student : Notifications / Emails
+
+Admin --> P1 : Role Configurations
+Admin --> P6 : Content Repository Management
+
+@enduml

@@ -17,6 +17,11 @@ import Navbar from "./components/Navbar";
 import { clearAuthSession, getAuthToken, getAuthUser, getMe } from "./api";
 import "./App.css";
 
+const USER_PROFILE_KEY_PREFIX = "career_tutor_user";
+
+const getUserProfileKey = (email) =>
+  email ? `${USER_PROFILE_KEY_PREFIX}:${email.toLowerCase().trim()}` : USER_PROFILE_KEY_PREFIX;
+
 function App() {
   const [authUser, setAuthUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -50,10 +55,7 @@ function App() {
     setAuthUser(authUserData);
     setAuthFlow(isRegister ? "register" : "login");
 
-    if (isRegister) {
-      localStorage.removeItem("career_tutor_user");
-    }
-    // Navigate after state updates
+    // Navigate to /app; the route decides whether onboarding is needed.
     setTimeout(() => navigate("/app", { replace: true }), 0);
   };
 
@@ -61,6 +63,8 @@ function App() {
     const nameFromAuth =
       authUser?.full_name || authUser?.email?.split("@")[0] || "Scholar";
     const mergedUser = { ...userData, name: nameFromAuth };
+    const profileKey = getUserProfileKey(authUser?.email);
+    localStorage.setItem(profileKey, JSON.stringify(mergedUser));
     localStorage.setItem("career_tutor_user", JSON.stringify(mergedUser));
     setRefreshKey((k) => k + 1);
     setAuthFlow("login");
@@ -68,14 +72,14 @@ function App() {
 
   const handleLogout = () => {
     setAuthUser(null);
-    localStorage.removeItem("career_tutor_user");
     clearAuthSession();
   };
 
   // Get user profile directly from localStorage
   const getUserProfile = () => {
     try {
-      const saved = localStorage.getItem("career_tutor_user");
+      const emailKey = getUserProfileKey(authUser?.email);
+      const saved = localStorage.getItem(emailKey) || localStorage.getItem("career_tutor_user");
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -133,7 +137,7 @@ function App() {
           element={
             !authUser ? (
               <Navigate to="/login" replace />
-            ) : authFlow === "register" && !getUserProfile() ? (
+            ) : !getUserProfile() ? (
               <Onboarding onComplete={handleOnboardingComplete} />
             ) : (
               <Dashboard

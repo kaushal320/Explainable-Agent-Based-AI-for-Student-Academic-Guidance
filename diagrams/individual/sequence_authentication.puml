@@ -1,0 +1,55 @@
+@startuml Sequence_Authentication
+title Detailed Sequence - Secure Auth & Email Verification
+
+actor User
+participant "React App" as UI
+participant "FastAPI Router" as Router
+participant "Auth Service" as Auth
+participant "Email Service" as Email
+participant "MongoDB" as DB
+participant "JWT Manager" as JWT
+
+User -> UI: Enter Register Details
+UI -> Router: POST /auth/register
+
+Router -> Auth: create_pending_user(data)
+Auth -> Auth: hash_password(bcrypt)
+Auth -> DB: insert_user(is_active=False)
+Auth -> Auth: generate_verification_otp()
+Auth -> DB: save_otp(user_id, otp)
+
+Auth -> Email: send_verification_email(email, otp)
+Email -> User: [Email with 6-digit Code]
+
+User -> UI: Enter OTP
+UI -> Router: POST /auth/verify
+
+Router -> Auth: verify_otp(user_id, otp)
+Auth -> DB: get_stored_otp()
+Auth -> Auth: validate_expiration()
+
+alt Valid OTP
+    Auth -> DB: update_user(is_active=True)
+    Auth -> Router: Verification Success
+    Router -> UI: Redirect to Login
+else Invalid/Expired
+    Auth -> Router: Error (400)
+    Router -> UI: Show "Invalid Code"
+end
+
+User -> UI: Login (email, password)
+UI -> Router: POST /auth/login
+
+Router -> Auth: authenticate_user(email, password)
+Auth -> DB: find_user_by_email
+DB -> Auth: user_doc
+Auth -> Auth: verify_hash(plain, hashed)
+
+Auth -> JWT: create_pair(access_token, refresh_token)
+JWT -> Auth: {tokens}
+
+Auth -> Router: AuthResponse
+Router -> UI: Set cookies / LocalStorage
+UI -> User: Login Success (Welcome!)
+
+@enduml

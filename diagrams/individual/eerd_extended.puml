@@ -1,0 +1,246 @@
+@startuml EERD_Extended
+!define SUPERTYPE_COLOR #E1F5FF
+!define SUBTYPE_COLOR #B3E5FC
+!define WEAK_ENTITY_COLOR #FFF9C4
+!define ASSOC_ENTITY_COLOR #E8F5E9
+
+title Extended Entity Relationship Diagram (EERD) - Expanded
+
+entity "User (Supertype)" as User <<SUPERTYPE>> #E1F5FF {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * email : String
+    * password_hash : String
+    full_name : String
+    created_at : DateTime
+    user_type : Enum(student/admin/tutor)
+    status : Enum(active/inactive)
+}
+
+entity "Student" as Student <<SUBTYPE>> #B3E5FC {
+    * student_id : ObjectId
+    --
+    major : String
+    year_of_study : Integer
+    admission_date : DateTime
+}
+
+entity "Administrator" as Admin <<SUBTYPE>> #B3E5FC {
+    * admin_id : ObjectId
+    --
+    admin_level : Integer
+    department : String
+    permissions : String[]
+}
+
+entity "Tutor" as Tutor <<SUBTYPE>> #B3E5FC {
+    * tutor_id : ObjectId
+    --
+    expertise_area : String
+    rating : Float
+    hire_date : DateTime
+}
+
+entity "StudentProfile" as StudentProfile #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    gpa : Float (0.0-4.0)
+    python_exp : Enum
+    sql_exp : Enum
+    java_exp : Enum
+    interested_domain : String
+}
+
+entity "CareerPrediction" as CareerPrediction #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    predicted_career : String (NOT NULL)
+    confidence_score : Float (0.0-1.0)
+    explanation : String
+    created_at : DateTime
+}
+
+entity "LearningPlan" as LearningPlan <<WEAK>> #FFF9C4 {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * prediction_id : ObjectId <<FK>>
+    beginner_path : String
+    intermediate_path : String
+    advanced_path : String
+    projects : String[]
+    tools : String[]
+    estimated_duration : Integer (weeks)
+}
+
+entity "Course" as Course #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    title : String
+    description : String
+    credits : Integer
+    status : Enum(draft/published)
+}
+
+entity "CourseModule" as CourseModule <<WEAK>> #FFF9C4 {
+    * module_id : ObjectId <<KEY>>
+    --
+    * course_id : ObjectId <<FK>>
+    order_index : Integer
+    title : String
+    content : String
+}
+
+entity "Assessment (Supertype)" as Assessment <<SUPERTYPE>> #E1F5FF {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * module_id : ObjectId <<FK>>
+    title : String
+    total_points : Integer
+    type : Enum(quiz/assignment)
+}
+
+entity "Quiz" as Quiz <<SUBTYPE>> #B3E5FC {
+    * quiz_id : ObjectId
+    --
+    time_limit_mins : Integer
+    passing_score : Integer
+    is_randomized : Boolean
+}
+
+entity "Assignment" as Assignment <<SUBTYPE>> #B3E5FC {
+    * assignment_id : ObjectId
+    --
+    due_date : DateTime
+    rubric_url : String
+    requires_file_upload : Boolean
+}
+
+entity "LiveSession" as LiveSession #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * tutor_id : ObjectId <<FK>>
+    * course_id : ObjectId <<FK>>
+    topic : String
+    scheduled_time : DateTime
+    duration_mins : Integer
+}
+
+entity "SessionEvent" as SessionEvent <<WEAK>> #FFF9C4 {
+    * event_id : ObjectId <<KEY>>
+    --
+    * session_id : ObjectId <<FK>>
+    * student_id : ObjectId <<FK>>
+    event_type : Enum(join/leave/yawn/look_away/question)
+    timestamp : DateTime
+    severity_score : Float
+}
+
+entity "ConversationSession" as ConversationSession #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    * prediction_id : ObjectId <<FK>>
+    session_start : DateTime
+    session_end : DateTime
+    total_messages : Integer
+    context : JSON
+    status : Enum(active/closed)
+}
+
+entity "ChatMessage" as ChatMessage <<WEAK>> #FFF9C4 {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * session_id : ObjectId <<FK>>
+    role : Enum(user/assistant)
+    content : String
+    timestamp : DateTime
+    token_count : Integer
+}
+
+entity "KnowledgeDocument" as KnowledgeDocument #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * user_id : ObjectId <<FK>>
+    document_type : Enum(pdf/txt/web)
+    source : String
+    chunks : DocumentChunk[]
+    metadata : JSON
+    indexed_at : DateTime
+}
+
+entity "DocumentChunk" as DocumentChunk <<WEAK>> #FFF9C4 {
+    * chunk_id : String
+    --
+    * doc_id : ObjectId <<FK>>
+    content : String
+    embedding : Vector
+    position : Integer
+}
+
+entity "Achievement" as Achievement #FFFFCC {
+    * **_id** : ObjectId <<KEY>>
+    --
+    title : String
+    description : String
+    badge_url : String
+}
+
+entity "StudentAchievement" as StudentAchievement <<ASSOC>> #E8F5E9 {
+    * **_id** : ObjectId <<KEY>>
+    --
+    * student_id : ObjectId <<FK>>
+    * achievement_id : ObjectId <<FK>>
+    date_earned : DateTime
+}
+
+User --|{ Student : specializes
+User --|{ Admin : specializes
+User --|{ Tutor : specializes
+
+Assessment --|{ Quiz : specializes
+Assessment --|{ Assignment : specializes
+
+Student ||--o{ StudentProfile : "maintains"
+Student ||--o{ CareerPrediction : "receives"
+CareerPrediction ||--|| LearningPlan : "generates"
+Student ||--o{ ConversationSession : "initiates"
+ConversationSession ||--o{ ChatMessage : "contains"
+Student ||--o{ KnowledgeDocument : "uploads"
+KnowledgeDocument ||--o{ DocumentChunk : "consists_of"
+
+Tutor ||--o{ LiveSession : "conducts"
+Course ||--o{ LiveSession : "features"
+LiveSession ||--o{ SessionEvent : "tracks"
+Student ||--o{ SessionEvent : "triggers"
+
+Course ||--o{ CourseModule : "contains"
+CourseModule ||--o{ Assessment : "includes"
+
+Student ||--o{ StudentAchievement : "earns"
+Achievement ||--o{ StudentAchievement : "awarded as"
+
+note right of User
+  Generalization/Specialization
+  User is supertype with Student,
+  Admin, and Tutor subtypes
+end note
+
+note right of Assessment
+  Assessment is supertype for
+  evaluations (Quiz, Assignment)
+end note
+
+note right of LearningPlan
+  Weak Entity - depends on
+  CareerPrediction for existence
+end note
+
+note right of StudentAchievement
+  Association Entity
+  Resolves M:N between Student
+  and Achievement
+end note
+
+@enduml

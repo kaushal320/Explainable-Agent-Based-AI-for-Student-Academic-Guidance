@@ -1,0 +1,59 @@
+@startuml StateDiagram_UserJourney
+title Detailed Student User Journey State Machine
+
+[*] --> GuestSession
+
+state GuestSession {
+    [*] --> ViewingLanding
+    ViewingLanding --> ExploringRoadmap : Click Roadmap
+    ExploringRoadmap --> ViewingLanding : Back
+    ViewingLanding --> RegistrationRequired : Try Prediction
+}
+
+state AuthenticationFlow {
+    [*] --> Registration
+    Registration --> EmailVerificationPending : Submit Data
+    EmailVerificationPending --> RegistrationFailed : Invalid OTP
+    EmailVerificationPending --> RegistrationSuccess : Valid OTP
+    RegistrationFailed --> Registration
+    RegistrationSuccess --> LoginState
+    LoginState --> AuthenticatedSession : Success
+}
+
+state AuthenticatedSession {
+    [*] --> Onboarding
+    
+    state Onboarding {
+        [*] --> DataInput
+        DataInput --> ValidatingInput
+        ValidatingInput --> SavingProfile
+        SavingProfile --> [*]
+    }
+    
+    Onboarding --> Dashboard : Completed
+    
+    state Dashboard {
+        [*] --> Idle
+        Idle --> GeneratingPrediction : Submit Profile
+        GeneratingPrediction --> ViewingResults : Success
+        ViewingResults --> ChattingWithTutor : Ask Question
+        ChattingWithTutor --> ViewingResults : Back
+        
+        ViewingResults --> LearningPathActive : Start Course
+        
+        state LearningPathActive {
+            [*] --> LessonView
+            LessonView --> QuizActive : Start Quiz
+            QuizActive --> QuizFailed : Score < Passing
+            QuizActive --> QuizPassed : Score >= Passing
+            QuizFailed --> LessonView : Review
+            QuizPassed --> AchievementUnlocked : First Completion
+            AchievementUnlocked --> LessonView
+        }
+    }
+}
+
+GuestSession --> AuthenticationFlow : Sign Up
+AuthenticatedSession --> [*] : Logout
+
+@enduml

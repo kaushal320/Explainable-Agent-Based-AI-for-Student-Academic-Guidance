@@ -1,0 +1,49 @@
+@startuml Sequence_ChatTutoring
+title Detailed Sequence - RAG-Powered AI Tutoring
+
+actor Student
+participant "Chat UI" as UI
+participant "FastAPI" as API
+participant "Chat Service" as ChatSvc
+participant "History Manager" as History
+participant "RAG Engine" as RAG
+participant "Vector DB" as Vector
+participant "Groq LLM (LLaMA-3)" as Groq
+participant "MongoDB" as DB
+
+Student -> UI: "Explain SQL Joins in my path"
+UI -> UI: Add user message to local state
+
+UI -> API: POST /api/chat/stream/
+API -> ChatSvc: orchestrate_response(query, history)
+
+ChatSvc -> History: fetch_recent_history(user_id, limit=10)
+History -> DB: find_chat_history
+DB -> History: messages[]
+History -> ChatSvc: formatted_history
+
+ChatSvc -> RAG: search_context(query)
+RAG -> RAG: embed_query(query)
+RAG -> Vector: similarity_search(query_vector, top_k=3)
+Vector -> RAG: relevant_document_chunks[]
+RAG -> ChatSvc: context_payload
+
+ChatSvc -> ChatSvc: Construct System Prompt\n(Identity + Context + Rules)
+
+ChatSvc -> Groq: initiate_streaming_request(prompt)
+Groq -> ChatSvc: Token Stream Start
+
+loop For each token chunk
+    ChatSvc -> API: Send SSE Event (chunk)
+    API -> UI: SSE Stream (text)
+    UI -> UI: Append chunk to message bubble
+end
+
+Groq -> ChatSvc: Stream Complete
+
+ChatSvc -> DB: save_interaction(user_msg, assistant_msg)
+DB -> ChatSvc: success
+
+UI -> Student: [Full Response Displayed]
+
+@enduml

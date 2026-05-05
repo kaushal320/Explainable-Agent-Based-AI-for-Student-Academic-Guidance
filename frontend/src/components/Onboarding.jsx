@@ -26,6 +26,36 @@ const Onboarding = ({ onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const itFields = [
+    "Artificial Intelligence",
+    "Bioinformatics",
+    "Biomedical Computing",
+    "Blockchain Technology",
+    "Cloud Computing",
+    "Computer Graphics",
+    "Computer Vision",
+    "Cybersecurity",
+    "Data Mining",
+    "Data Privacy",
+    "Data Science",
+    "Database Management",
+    "Digital Forensics",
+    "Distributed Systems",
+    "Game Development",
+    "Geographic Information Systems",
+    "Human-Computer Interaction",
+    "Information Retrieval",
+    "IoT (Internet of Things)",
+    "Machine Learning",
+    "Mobile App Development",
+    "Natural Language Processing",
+    "Network Security",
+    "Quantum Computing",
+    "Software Development",
+    "Software Engineering",
+    "Web Development"
+  ];
+
   const totalSteps = 3;
 
   const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
@@ -105,11 +135,9 @@ const Onboarding = ({ onComplete }) => {
                       value={formData.domain} onChange={(e) => setFormData({...formData, domain: e.target.value})}
                       className="select-input"
                     >
-                      <option>Software Engineering</option>
-                      <option>Data Science</option>
-                      <option>Cybersecurity</option>
-                      <option>AI Engineering</option>
-                      <option>Web Development</option>
+                      {itFields.map((field) => (
+                        <option key={field}>{field}</option>
+                      ))}
                     </select>
                     <div style={{ position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
                       <ChevronRight size={22} className="text-indigo opacity-30" style={{ transform: 'rotate(90deg)' }} />

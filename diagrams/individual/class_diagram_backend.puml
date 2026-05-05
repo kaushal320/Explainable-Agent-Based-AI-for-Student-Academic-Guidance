@@ -1,0 +1,83 @@
+@startuml ClassDiagram_Backend
+title Detailed Class Architecture - Backend Services
+
+package "Models (Pydantic)" #E3F2FD {
+    class BaseUser {
+        +email: EmailStr
+        +full_name: str
+    }
+    class UserCreate extends BaseUser {
+        +password: SecretStr
+    }
+    class UserInDB extends BaseUser {
+        +hashed_password: str
+        +is_active: bool
+        +is_verified: bool
+    }
+    
+    class PredictionRequest {
+        +gpa: float
+        +skills: Dict[str, str]
+        +domain: str
+    }
+    
+    class LearningPlan {
+        +beginner: List[str]
+        +intermediate: List[str]
+        +advanced: List[str]
+        +resources: List[HttpUrl]
+    }
+}
+
+package "Services (Business Logic)" #F3E5F5 {
+    interface IAuthService {
+        +register(user: UserCreate)
+        +login(creds: UserLogin)
+        +verify_email(otp: str)
+    }
+    
+    class AuthService implements IAuthService {
+        -db: MongoDBManager
+        -jwt: JWTHandler
+        +authenticate()
+    }
+    
+    class PredictionService {
+        -model_registry: ModelLoader
+        -groq: GroqClient
+        +predict_and_explain(req: PredictionRequest)
+    }
+    
+    class ChatOrchestrator {
+        -rag: RAGService
+        -llm: GroqLLM
+        +stream_response(query: str)
+    }
+    
+    class RAGService {
+        -vector_db: FAISS
+        -embedder: SentenceTransformer
+        +retrieve_relevant_chunks(query: str)
+    }
+}
+
+package "Infrastructure" #E8F5E9 {
+    class MongoDBManager {
+        -client: AsyncIOMotorClient
+        +get_collection(name: str)
+    }
+    
+    class ModelLoader {
+        +load_pickle(path: str)
+        +inference(data: np.array)
+    }
+}
+
+' Relations
+AuthService ..> UserInDB
+PredictionService ..> PredictionRequest
+PredictionService ..> LearningPlan
+ChatOrchestrator --> RAGService
+ChatOrchestrator --> AuthService : "check session"
+
+@enduml

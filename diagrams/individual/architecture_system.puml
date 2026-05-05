@@ -1,0 +1,86 @@
+@startuml Architecture_System
+title System Architecture - Scholar Hub
+
+!define FRONTEND_COLOR #E3F2FD
+!define BACKEND_COLOR #F3E5F5
+!define SERVICE_COLOR #E8F5E9
+!define DATA_COLOR #FFF3E0
+
+rectangle "CLIENT LAYER" #E3F2FD {
+    component "React Frontend\n(Vite + Tailwind)" as Frontend
+    component "Components\n(Login, Chat, Dashboard,\nLearning Hub)" as Components
+    component "State Management\n(React Hooks)" as StateManagement
+    component "HTTP Client\n(Axios)" as HttpClient
+    
+    Frontend --> Components
+    Frontend --> StateManagement
+    Frontend --> HttpClient
+}
+
+rectangle "API GATEWAY & AUTH" #F3E5F5 {
+    component "FastAPI Server" as FastAPI
+    component "OAuth2/JWT\nAuthentication" as Auth
+    component "Request Validation\n(Pydantic)" as Validation
+    component "CORS & Security" as Security
+    
+    FastAPI --> Auth
+    FastAPI --> Validation
+    FastAPI --> Security
+}
+
+rectangle "BUSINESS LOGIC LAYER" #F3E5F5 {
+    component "Prediction Service\n(ML Logic)" as PredService
+    component "Chat Service\n(Conversation Agent)" as ChatService
+    component "Learning Service\n(Course Management)" as LearnService
+    component "Auth Service\n(User Management)" as AuthService
+    component "RAG Service\n(Knowledge Retrieval)" as RAGService
+}
+
+rectangle "AI/ML SERVICES" #E8F5E9 {
+    component "Groq API Client\n(LLM Inference)" as GroqClient
+    component "Local ML Models\n(Career Prediction)" as MLModels
+    component "Embedding Model\n(RAG)" as EmbeddingModel
+    component "LangChain\n(Orchestration)" as LangChain
+}
+
+rectangle "DATA LAYER" #FFF3E0 {
+    database "MongoDB\n(Users, Profiles,\nPredictions)" as Mongo
+    database "Career Content CSV\n(Lessons, Quizzes)" as ContentCSV
+    database "Vector Store\n(Document Embeddings)" as VectorStore
+    database "ML Model Files\n(Encoder, Classifier)" as ModelFiles
+}
+
+rectangle "EXTERNAL SERVICES" #E8F5E9 {
+    component "Groq Cloud\n(Remote LLM)" as GroqCloud
+    component "Email Service\n(Notifications)" as EmailService
+}
+
+HttpClient --> FastAPI
+FastAPI --> Auth
+Auth --> AuthService
+FastAPI --> PredService
+FastAPI --> ChatService
+FastAPI --> LearnService
+FastAPI --> RAGService
+
+PredService --> MLModels
+PredService --> Mongo
+ChatService --> GroqClient
+ChatService --> LangChain
+ChatService --> Mongo
+ChatService --> RAGService
+
+LearnService --> ContentCSV
+LearnService --> Mongo
+RAGService --> EmbeddingModel
+RAGService --> VectorStore
+RAGService --> Mongo
+
+AuthService --> Mongo
+GroqClient --> GroqCloud
+GroqCloud -.-> ChatService
+
+Components --> StateManagement
+StateManagement --> HttpClient
+
+@enduml

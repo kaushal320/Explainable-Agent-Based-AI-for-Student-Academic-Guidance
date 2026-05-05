@@ -1,0 +1,79 @@
+@startuml CFD_Component_Interaction
+title Component Flow Diagram - Data & Control Flow
+
+!define COMP_COLOR #D1C4E9
+!define DATA_COLOR #FFCCBC
+
+card "Browser" #E3F2FD {
+    component "Login Component" as LoginComp
+    component "Onboarding Component" as OnboardComp
+    component "Dashboard Component" as DashComp
+    component "Chat Component" as ChatComp
+    component "Learning Hub" as LearningComp
+    component "Feedback Component" as FeedbackComp
+}
+
+card "Frontend State" #F3E5F5 {
+    component "Auth State" as AuthState
+    component "User State" as UserState
+    component "Prediction State" as PredState
+    component "Chat State" as ChatState
+    component "Progress State" as ProgressState
+}
+
+card "FastAPI Backend" #F3E5F5 {
+    component "AuthRouter" as AuthRouter
+    component "PredictRouter" as PredRouter
+    component "ChatRouter" as ChatRouter
+    component "LearningRouter" as LearningRouter
+    component "FeedbackRouter" as FeedbackRouter
+    component "KnowledgeRouter" as KnowledgeRouter
+}
+
+card "Services" #E8F5E9 {
+    component "AuthService" as AuthSvc
+    component "PredictionService" as PredSvc
+    component "ChatService" as ChatSvc
+    component "LearningService" as LearnSvc
+    component "RAGService" as RAGSvc
+}
+
+card "External APIs & Data" #FFF3E0 {
+    component "Groq LLM" as GroqAPI
+    component "MongoDB" as MongoDB
+    component "Career Content" as CareerContent
+    component "ML Models" as MLModels
+}
+
+LoginComp --> AuthState : auth_token\nuser_data
+OnboardComp --> UserState : profile_data
+DashComp --> PredState : prediction
+ChatComp --> ChatState : messages
+LearningComp --> ProgressState : progress_data
+
+AuthState --> AuthRouter : POST /auth/login
+AuthState --> AuthRouter : POST /auth/register
+UserState --> PredRouter : POST /predict
+PredState --> DashComp : display_prediction
+ChatState --> ChatRouter : POST /chat\nPOST /chat/stream
+ChatRouter --> ChatSvc : process
+LearningComp --> LearningRouter : GET /lesson\nGET /quiz
+ProgressState --> LearningComp : render_progress
+FeedbackComp --> FeedbackRouter : POST /feedback
+
+AuthRouter --> AuthSvc
+PredRouter --> PredSvc
+ChatRouter --> ChatSvc
+LearningRouter --> LearnSvc
+FeedbackRouter --> RAGSvc
+
+AuthSvc --> MongoDB : read/write
+PredSvc --> MLModels : predict
+PredSvc --> GroqAPI : generate_explanation
+ChatSvc --> GroqAPI : get_response
+ChatSvc --> RAGSvc : retrieve_docs
+LearnSvc --> CareerContent : fetch_content
+LearnSvc --> MongoDB : track_progress
+RAGSvc --> MongoDB : store/retrieve
+
+@enduml

@@ -34,7 +34,9 @@ const LoginInner = ({ onAuthenticated, mode }) => {
     try {
       // Send the OAuth2 access_token to backend — it will call Google's userinfo endpoint
       const data = await googleLogin(tokenResponse.access_token);
-      onAuthenticated(data, false);
+      // If we are on the register flow, tell the app this is a registration so
+      // it navigates to onboarding to collect GPA and skills.
+      onAuthenticated(data, mode === "register");
     } catch (err) {
       setError(
         err?.response?.data?.detail || "Google login failed. Please try again.",
@@ -288,7 +290,7 @@ const LoginInner = ({ onAuthenticated, mode }) => {
               )}
             </button>
 
-            {mode === "login" && isGoogleLoginConfigured && (
+            {(mode === "login" || mode === "register") && isGoogleLoginConfigured && (
               <div className="mt-6 relative">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex-1 h-px bg-slate-600"></div>
@@ -335,7 +337,7 @@ const LoginInner = ({ onAuthenticated, mode }) => {
               </div>
             )}
 
-            {mode === "login" && !isGoogleLoginConfigured && (
+            {(mode === "login" || mode === "register") && !isGoogleLoginConfigured && (
               <p className="mt-6 text-sm text-amber-300/90 text-center">
                 Google login is disabled until VITE_GOOGLE_CLIENT_ID is set to a
                 valid Google OAuth client ID.

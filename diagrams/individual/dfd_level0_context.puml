@@ -1,0 +1,52 @@
+@startuml DFD_Level0_Context
+title Data Flow Diagram - Level 0 (Context Diagram) - Extended
+
+entity "Student User" as StudentUser
+entity "System Administrator" as Admin
+entity "Tutor / Instructor" as Tutor
+entity "Groq AI API" as GroqAPI
+entity "MongoDB Database" as MongoDB
+entity "Email & Notification Service" as EmailService
+entity "Payment Gateway (Stripe)" as PaymentGateway
+entity "WebRTC Media Server" as MediaServer
+entity "TTS/STT Service" as SpeechService
+
+database "Scholar Hub\nAI System" as System #CCFFFF
+
+StudentUser --> System : Student Input Data\n(Scores, Voice, Video, Payment)
+System --> StudentUser : Predictions, Explanations,\nAudio Responses, Live Streams
+
+Tutor --> System : Schedule Sessions,\nCourse Materials, Assessments
+System --> Tutor : Student Engagement Metrics,\nSession Logs
+
+Admin --> System : System Config, API Keys,\nUser Management
+System --> Admin : System Analytics, Audit Reports
+
+System --> GroqAPI : LLM Requests (Prediction/Chat)
+GroqAPI --> System : AI Generated Responses
+
+System --> MongoDB : Read/Write Operations
+MongoDB --> System : Stored Data Records
+
+System --> EmailService : Notification Triggers
+EmailService --> System : Delivery Status
+
+System --> PaymentGateway : Payment Tokens, Amounts
+PaymentGateway --> System : Transaction Status, Receipts
+
+System --> MediaServer : Session Signaling, WebRTC Data
+MediaServer --> System : Connection Status, Bandwidth Logs
+
+System --> SpeechService : Text-to-Speech / Speech-to-Text Requests
+SpeechService --> System : Audio Streams / Transcribed Text
+
+note right of System
+  Main System Processes:
+  - Career Prediction & XAI
+  - Conversational AI Tutoring
+  - Live Session & Engagement
+  - Learning & Gamification
+  - Subscription & Payment
+end note
+
+@enduml

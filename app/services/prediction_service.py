@@ -103,6 +103,42 @@ exp_mapping = {
     "I have built applications with Java": 3
 }
 
+
+def _normalize_domain(domain: str) -> str:
+    """Map UI-friendly domain names to encoder labels used by the model."""
+    aliases = {
+        "Software Engineer": "Software Engineering",
+        "Data Scientist": "Data Science",
+        "Web Developer": "Web Development",
+        "Cloud Solutions Architect": "Cloud Computing",
+        "Mobile App Developer": "Mobile App Development",
+        "Machine Learning Engineer": "Machine Learning",
+        "NLP Engineer": "Natural Language Processing",
+        "Computer Vision Engineer": "Computer Vision",
+        "Cybersecurity": "Cybersecurity",
+        "Information Security Analyst": "Network Security",
+        "Security Analyst": "Network Security",
+        "Database Administrator": "Database Management",
+        "Data Analyst": "Data Science",
+        "AI Researcher": "Artificial Intelligence",
+        "Robotics Engineer": "Artificial Intelligence",
+        "IoT Developer": "IoT (Internet of Things)",
+        "Distributed Systems Engineer": "Distributed Systems",
+        "Digital Forensics Specialist": "Digital Forensics",
+        "Geospatial Analyst": "Geographic Information Systems",
+        "Blockchain Engineer": "Blockchain Technology",
+        "Graphics Programmer": "Computer Graphics",
+        "NLP Research Scientist": "Natural Language Processing",
+        "Quantum Computing Researcher": "Quantum Computing",
+        "DevOps Engineer": "Software Development",
+        "Healthcare IT Specialist": "Software Development",
+        "UX Designer": "Human-Computer Interaction",
+        "Bioinformatician": "Bioinformatics",
+        "Ethical Hacker": "Cybersecurity",
+        "SEO Specialist": "Information Retrieval",
+    }
+    return aliases.get(domain, domain)
+
 def analyze_student(skills: Dict[str, float]):
     weaknesses = {}
     weaknesses["Python"] = 3 - skills["Python"]
@@ -151,20 +187,21 @@ class PredictionService:
     def predict_career(data: StudentOnboarding) -> PredictionResponse:
         try:
             # Domain transformation is the only one needing an encoder
-            domain_encoded = ml_models.le_domain.transform([data.domain])[0]
+            domain_name = _normalize_domain(data.domain)
+            domain_encoded = ml_models.le_domain.transform([domain_name])[0]
         except (ValueError, AttributeError) as e:
             logger.error(f"Prediction failed: {e}")
             fd = {"Python": 1, "SQL": 1, "Java": 1, "GPA": data.gpa}
             return PredictionResponse(
-                career="General IT Consultant",
+                career="Software Engineer",
                 plan=LearningPlan(
                     beginner="Focus on core computer science foundations.",
-                    intermediate="Explore various IT domains to find your fit.",
+                    intermediate="Explore software engineering fundamentals through projects.",
                     advanced="Specialize in your chosen area.",
-                    advice=["Please select valid options in the UI."],
+                    advice=["Please select a valid domain from the list of supported options."],
                     weakness_rank=[["Input Data", 1.0]],
-                    projects="General technology projects",
-                    tools="VS Code, Git",
+                    projects="Build a small application, API, or portfolio project.",
+                    tools="VS Code, Git, documentation",
                 ),
                 skills=SkillScores(**fd),
                 explanation=None,

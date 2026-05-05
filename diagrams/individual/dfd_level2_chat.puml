@@ -1,0 +1,53 @@
+@startuml DFD_Level2_Chat
+title Data Flow Diagram - Level 2 (AI Chat/Tutoring Process)
+
+entity "Student User" as Student
+database "Chat History" as ChatDB
+database "Career Context" as ContextDB
+database "Knowledge Base\nEmbeddings" as KnowledgeDB
+entity "Groq LLM" as Groq
+entity "RAG Retriever" as RAG
+
+node "4.1: Input Validation\n& Sanitization" as P41 #FFFFCC
+node "4.2: Context Retrieval\n& Enrichment" as P42 #FFFFCC
+node "4.3: Embedding & Similarity\nSearch (RAG)" as P43 #FFFFCC
+node "4.4: Prompt Construction" as P44 #FFFFCC
+node "4.5: LLM Inference\n& Streaming" as P45 #FFFFCC
+node "4.6: Response Post-Processing\n& Storage" as P46 #FFFFCC
+
+database "Embeddings Store" as DS41
+database "Retrieved Context" as DS42
+database "Constructed Prompts" as DS43
+database "Raw Responses" as DS44
+
+Student --> P41 : Chat Message\n(Text Query)
+P41 --> Student : Validation Error\n(if invalid)
+P41 --> DS42 : Sanitized Input
+
+DS42 --> P42 : User Query
+ChatDB --> P42 : Previous Messages\n(Conversation History)
+ContextDB --> P42 : Career/Prediction\nContext
+P42 --> DS42 : Enriched Context
+
+DS42 --> P43 : Query + Context
+KnowledgeDB --> P43 : Document Embeddings
+P43 --> RAG : Similarity Search
+RAG --> P43 : Top-K Relevant\nDocuments
+P43 --> DS41 : Retrieved Chunks
+
+DS42 --> P44 : Query + Context
+DS41 --> P44 : Retrieved Knowledge
+P44 --> DS43 : Formatted Prompt\nwith System Instructions
+
+DS43 --> P45 : Complete Prompt
+P45 --> Groq : Stream Request
+Groq --> P45 : Streamed Text Chunks
+P45 --> Student : Real-time Chat\nResponse (Stream)
+P45 --> DS44 : Accumulated Response
+
+DS44 --> P46 : Complete Response Text
+ChatDB --> P46 : Session ID
+P46 --> ChatDB : Store Message\n(User & Assistant)
+P46 --> Student : Final Response
+
+@enduml
